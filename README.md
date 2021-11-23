@@ -1,4 +1,4 @@
-# Integration scheme for coupling SWIMM and MODFLOW
+# Integration scheme for coupling SWMM and MODFLOW
 The integration scheme is composed of 3 modules:
 * Spatial Integration of SWMM and MODFLOW elements
 * Coupled SWMM and MODFLOW Simulation: Loop for temporal and spatial data exchange
@@ -12,8 +12,6 @@ The integration scheme is composed of 3 modules:
 ### Output: 
 - gdf with MODFLOW cells associations (elev, S, SU, DRN, drn_to)
 - plots
-### Methods:
-
 ## Coupled SWMM and MODFLOW simulation: Loop for temporal and spatial data exchange 
 ### Inputs:
 - Simulation from pySWMM
