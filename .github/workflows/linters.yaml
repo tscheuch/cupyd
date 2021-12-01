@@ -46,5 +46,5 @@ jobs:
         if: steps.nicanor.outputs.cache-hit != 'true'
         run: make build-dev
 
-      # - name: Lint with Black
-      #   run: make black
+      - name: Lint with Black
+        run: make black
