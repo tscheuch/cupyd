@@ -21,3 +21,11 @@ build:
 .PHONY: build-dev
 build-dev:
 	poetry install
+
+
+# LINTERS
+black:
+	poetry run black swmm_modflow_oss --check
+
+black!:
+	poetry run black swmm_modflow_oss
