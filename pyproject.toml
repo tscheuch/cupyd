@@ -13,10 +13,15 @@ python-semantic-release = "^7.23.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.11b1"
+isort = "^5.10.1"
+
 
 # LINTER CONFIGURATIONS
 [tool.black]
 line-length = 88
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
