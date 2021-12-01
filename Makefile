@@ -29,3 +29,9 @@ black:
 
 black!:
 	poetry run black swmm_modflow_oss
+
+isort:
+	poetry run isort swmm_modflow_oss/* --check --settings-path ./pyproject.toml --diff
+
+isort!:
+	poetry run isort swmm_modflow_oss/* --settings-path ./pyproject.toml
