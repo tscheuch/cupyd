@@ -1,19 +1,19 @@
 [tool.poetry]
-name = "swmm_modflow_oss"
+name = "swmm-modflow-oss"
 version = "0.1.0"
 description = "Integration scheme for coupling SWMM and MODFLOW"
 authors = [
     "tscheuch <tscheuch@uc.cl>",
     "jricci1 <jricci1@uc.cl>",
 ]
+readme = "README.md"
+repository = "https://github.com/tscheuch/SWMM_MODFLOW_OSS"
+keywords = ["flopy", "pyswmm"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 flopy = "^3.3.4"
 geopandas = "^0.10.2"
-wheel = "^0.37.1"
-setuptools = "^60.1.1"
-twine = "^3.7.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.11b1"
