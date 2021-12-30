@@ -11,7 +11,7 @@ repository = "https://github.com/tscheuch/SWMM_MODFLOW_OSS"
 keywords = ["flopy", "pyswmm"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.6"
 flopy = "^3.3.4"
 geopandas = "^0.10.2"
 
