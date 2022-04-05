@@ -19,9 +19,24 @@ class CoupledModel:
 
         Args:
             modflow_model (Modflow):
-                This is the `Modflow` model instance (which is based on flopy) to couple.
-                If any file is missing to properly run the simulation, you will get a warning.
-                You will not get an error, since it is still useful for coupling.
+                This is the `Modflow` model instance (which is based on flopy) to couple with a SWMM model.
+                
+                NOTE: Un modelo MODFLOW puede ser construido con distintas interfaces (i.e. no es necesario usar flopy)
+                como por ejemplo Visual MODFLOW, porque finalmente lo relevante es generar este grupo de archivos (e.g. .dis, .bas, .drn)
+                que en conjunto conforman el modelo MODFLOW. Lo que sí es relevante es poder importar todos estos archivos
+                vía flopy para generar esta instancia que le entregaremos como argumento a esta clase.
+                
+                .dis --> Te da información acerca de la grilla/celdas: qué dimensiones (x,y,z) tiene, su elevación, cuántas capas, etc.
+                         Además, te da la estructura inicial de la grilla.
+                         El archivo .dis tiene forma matricial (row vs col) donde cada celda tiene info sobre la elevación.
+                         Para sumar puntos en la trivia: .dis viene de discretization
+                .drn --> Te dice qué celdas tienen capacidad de drenar, con qué capacidad (i.e. conductancia), a qué profundidad drenan
+                .bas --> Viene de "basic". Te dice la actividad de las celdas: 1 -> activa, 0 -> inactiva, -1 -> celda de elevación constante
+                
+                If the .dis file is missing, you will get an error since it's a required/minimal file for the coupling.
+                If any additional file is missing, you will get a warning, since they are needed to run the simulation.
+                You will not get an error, since it is still useful for coupling-related operation such as plotting.
+                
 
                 TODO: falta averiguar cuáles son los archivos mínimos para correr una simulación flopy
 
