@@ -5,6 +5,45 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Polygon
 
 
+class CoupledModel:
+    def __init__(
+        self,
+        modflow_model: Modflow,
+        swmm_shp_file_path: str,
+        storage_units_shp_file_path: str = None,
+        nodes_shp_file_path: str = None,
+    ) -> None:
+        """
+        This class intends to create a relationship between a model subterraneo? in MODFLOW and
+        a superficial one from SWMM.
+
+        Args:
+            modflow_model (Modflow):
+                This is the `Modflow` model instance (which is based on flopy) to couple.
+                If any file is missing to properly run the simulation, you will get a warning.
+                You will not get an error, since it is still useful for coupling.
+
+                TODO: falta averiguar cuáles son los archivos mínimos para correr una simulación flopy
+
+            swmm_shp_file_path (str):
+                The filepath to the SWMM `shp` file to load the externally generated file,
+                that's usually created with a GIS-based software such as QGIS (open-source) or ARCGIS (proprietary).
+                This `shp` file should be one made out of `Polygons`.
+            
+            storage_units_shp_file_path (str, optional):
+                The filepath.
+                This `shp` file should be one made out of `Polygons`.
+
+            nodes_shp_file_path (str, optional):
+                _description_.
+        """
+        pass
+
+
+    def validate_modflow_model():
+        """_summary_
+        """
+
 def empty_georeference_dataframe() -> GeoDataFrame:
     """Function that builds and returns an empty `GeoDataFrame` with all the
     necesary columns for the georeferenciation between a `Modflow` model and a SWMM model.
