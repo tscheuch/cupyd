@@ -1,5 +1,7 @@
+from this import d
 import flopy
 import geopandas as gpd
+# from pyswmm import Simulation
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon
@@ -9,6 +11,7 @@ class CoupledModel:
     def __init__(
         self,
         modflow_model: Modflow,
+        # pyswmm_model: Simulation,
         swmm_shp_file_path: str,
         storage_units_shp_file_path: str = None,
         nodes_shp_file_path: str = None,
@@ -20,48 +23,74 @@ class CoupledModel:
         Args:
             modflow_model (Modflow):
                 This is the `Modflow` model instance (which is based on flopy) to couple with a SWMM model.
-                
+
                 NOTE: Un modelo MODFLOW puede ser construido con distintas interfaces (i.e. no es necesario usar flopy)
                 como por ejemplo Visual MODFLOW, porque finalmente lo relevante es generar este grupo de archivos (e.g. .dis, .bas, .drn)
                 que en conjunto conforman el modelo MODFLOW. Lo que sí es relevante es poder importar todos estos archivos
                 vía flopy para generar esta instancia que le entregaremos como argumento a esta clase.
-                
+
                 .dis --> Te da información acerca de la grilla/celdas: qué dimensiones (x,y,z) tiene, su elevación, cuántas capas, etc.
                          Además, te da la estructura inicial de la grilla.
                          El archivo .dis tiene forma matricial (row vs col) donde cada celda tiene info sobre la elevación.
                          Para sumar puntos en la trivia: .dis viene de discretization
                 .drn --> Te dice qué celdas tienen capacidad de drenar, con qué capacidad (i.e. conductancia), a qué profundidad drenan
                 .bas --> Viene de "basic". Te dice la actividad de las celdas: 1 -> activa, 0 -> inactiva, -1 -> celda de elevación constante
-                
-                If the .dis file is missing, you will get an error since it's a required/minimal file for the coupling.
-                If any additional file is missing, you will get a warning, since they are needed to run the simulation.
-                You will not get an error, since it is still useful for coupling-related operation such as plotting.
-                
 
                 TODO: falta averiguar cuáles son los archivos mínimos para correr una simulación flopy
 
-            swmm_shp_file_path (str):
-                The filepath to the SWMM `shp` file to load the externally generated file,
-                that's usually created with a GIS-based software such as QGIS (open-source) or ARCGIS (proprietary).
-                This `shp` file should be one made out of `Polygons`.
-            
+            pyswmm_model (Simulation):
+                <TODO: @tscheuch>
+
+            subcatchments_swmm_shp_file_path (str):
+                The filepath to the SWMM subcatchments shapefile.
+                The SWMM subcatchments shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
+                It should be a polygon shapefile.
+
             storage_units_shp_file_path (str, optional):
-                The filepath.
-                This `shp` file should be one made out of `Polygons`.
+                If the SWMM model has storage units with infiltration (seepage) capacity,
+                to incorporated this rate as MODFLOW recharge, a storage unit shapefile must be given.
+                The SWMM storage units shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
+                It represents the whole area associated to the respective water body.
+                It should be a polygon shapefile.
 
             nodes_shp_file_path (str, optional):
                 _description_.
+
+        STEPS:
+        1. Validation of modflow model
+        2. Validation subcatchment-shape relationship is one-to-one.
+           i.e. each existing subcatchment must have a polygon with the same name on the shapefile
+        3. Make the spatial linktegration
+        3.1. Create empty geodataframe
+        3.2. Add modflow info to empty dataframe
+        3.3.
         """
         pass
 
+        # self.validate_modflow_model()  # this validation should occur in the init
+        # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
 
-    def validate_modflow_model():
-        """_summary_
+
+    def validate_modflow_model(self):
         """
+        If the .dis file is missing, you will get an error since it's a required/minimal file for the coupling.
+        If any additional file is missing, you will get a warning, since they are needed to run the simulation.
+        You will not get an error, since it is still useful for coupling-related operation such as plotting.
+        """
+        pass
+
+    def validate_subcatch_shp_relationship(self):
+        pass
+
+    def _create_empty_georeference_dataframe(self) -> GeoDataFrame:
+        pass
+
+    def _add_modflow_info_dataframe(self) -> None:
+        pass
 
 def empty_georeference_dataframe() -> GeoDataFrame:
     """Function that builds and returns an empty `GeoDataFrame` with all the
-    necesary columns for the georeferenciation between a `Modflow` model and a SWMM model.
+    necesary columns for the spatial linkage between a `Modflow` model and a SWMM model.
 
     All the `GeoDataFrame` columns needed for the georeference are:
 
@@ -72,11 +101,15 @@ def empty_georeference_dataframe() -> GeoDataFrame:
         - column (Int): Number of the column were each cell lives in, on the `Modflow` instance grid.
         - geometry (Polygon): 'Polygon' representation of the cell.
         - elevation (Float): Cell elevation of the first layer of the grid,
-            the one that gets georeferenced with the SWMM model. (Not necesary, seems to be the same as drn_elev)
+            the one that gets georeferenced with the SWMM model.
         - drn_elev (Float): Is the elevation of the drain.
         - drn_cond (Float): Is the hydraulic conductance of the interface between the aquifer and the drain.
 
     * SWMM related columns:
+        NOTE: un subcatchment va a infiltrar agua en múltiples celdas
+              una celda recibe agua infiltrada desde un sólo subcatchment
+              una celda podría adicionalmente recibir agua desde un storage unit
+
         Infiltration exchange:
         - subcatchment (Str): Name of SWMM subcatchment that infiltrates to the cell.
         - infiltration_storage_unit (Str, None): Name of the SWMM storage unit that infiltrates to the cell.
