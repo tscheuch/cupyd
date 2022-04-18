@@ -17,8 +17,8 @@ class CoupledModel:
         nodes_shp_file_path: str = None,
     ) -> None:
         """
-        This class intends to create a relationship between a model subterraneo? in MODFLOW and
-        a superficial one from SWMM.
+This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.
+It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. It allows the bidirectional and spatially distributed flux exchange between models (i.e., infiltration and exfiltration rates).
 
         Args:
             modflow_model (Modflow):
