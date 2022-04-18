@@ -5,6 +5,7 @@ description = "Integration scheme for coupling SWMM and MODFLOW"
 authors = [
     "tscheuch <tscheuch@uc.cl>",
     "jricci1 <jricci1@uc.cl>",
+    "nebil <nebil@uc.cl>",
 ]
 readme = "README.md"
 repository = "https://github.com/tscheuch/SWMM_MODFLOW_OSS"
