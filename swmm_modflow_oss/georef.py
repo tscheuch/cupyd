@@ -54,7 +54,11 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
                 It should be a polygon shapefile.
 
             nodes_shp_file_path (str, optional):
-                _description_.
+The filepath to the SWMM nodes shapefile.
+It is only necessary if: (1)The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM junctions. (2) The relationship between MODFLOW cells and SWMM junctiones is built automatically.
+It represents the spatial location of the SWMM junctions (i.e., nodes, storage unitis, dividers or outfalls).
+The SWMM nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
+It should be a points shapefile and one atribute for each geometry on the shapefile must be the name of the node in the SWMM model. By convention the name of the column should be "node".
 
         STEPS:
         1. Validation of modflow model
