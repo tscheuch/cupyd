@@ -53,12 +53,25 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
                 It represents the whole area associated to the respective water body.
                 It should be a polygon shapefile.
 
+            TODO: @tscheuch, spatial join this two parameters please.
             nodes_shp_file_path (str, optional):
-The filepath to the SWMM nodes shapefile.
-It is only necessary if: (1)The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM junctions. (2) The relationship between MODFLOW cells and SWMM junctiones is built automatically.
-It represents the spatial location of the SWMM junctions (i.e., nodes, storage unitis, dividers or outfalls).
-The SWMM nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
-It should be a points shapefile and one atribute for each geometry on the shapefile must be the name of the node in the SWMM model. By convention the name of the column should be "node".
+                The filepath to the SWMM nodes shapefile.
+                It is only necessary if:
+                    (1) The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
+                    (2) The relationship between MODFLOW cells and SWMM nodes is built automatically.
+                It represents the spatial location of the SWMM nodes (i.e., junctions, storage unitis, dividers or outfalls).
+                The SWMM nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
+                It should be a points shapefile and one atribute for each geometry on the shapefile must be the name of the node in the SWMM model.
+                By convention the name of the column should be "node".
+            
+            zone_nodes_shp_file_path (str, optional):
+                The filepath to the shapefile that defines zones of the aquifer that drains to existing SWMM nodes.
+                It is only necessary if:
+                    (1) The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
+                    (2) The relationship between MODFLOW cells and SWMM nodes isn't built automatically.
+                The zone nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
+                It must be a polygon shapefile. One atribute for each geometry on the shapefile must be the name of the node in SWMM where the drained water will be incorporated as lateral inflow. 
+                By convention the name of the column should be "node".
 
         STEPS:
         1. Validation of modflow model
