@@ -75,6 +75,7 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
 
         STEPS:
         1. Validation of modflow model
+            1.1 Validate `drn` package with only 1 stress period.
         2. Validation subcatchment-shape relationship is one-to-one.
            i.e. each existing subcatchment must have a polygon with the same name on the shapefile
         3. Make the spatial linktegration
@@ -86,7 +87,7 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
 
         # self.validate_modflow_model()  # this validation should occur in the init
         # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
-
+        self.modflow_model = modflow_model
 
     def validate_modflow_model(self):
         """
@@ -99,11 +100,125 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
     def validate_subcatch_shp_relationship(self):
         pass
 
-    def _create_empty_georeference_dataframe(self) -> GeoDataFrame:
-        pass
+    @staticmethod
+    def _create_empty_georeference_dataframe() -> GeoDataFrame:
+        """Function that builds and returns an empty `GeoDataFrame` with all the
+        necessary columns for the spatial linkage between a `Modflow` model and a SWMM model.
 
-    def _add_modflow_info_dataframe(self) -> None:
-        pass
+        All the `GeoDataFrame` columns needed for the spacial linkage are:
+
+        * MODFLOW related columns:
+
+            - x (Int): Number of the x-axis were each cell lives in, on the `Modflow` instance grid.
+            - y (Int): Number of the y-axis were each cell lives in, on the `Modflow` instance grid.
+            - geometry (Polygon): 'Polygon' representation of the cell.
+            - elevation (Float): Cell elevation of the first layer of the grid,
+                the one that gets georeferenced with the SWMM model.
+            - drn_elev (Float): Is the elevation of the drain.
+            - drn_cond (Float): Is the hydraulic conductance of the interface between the aquifer and the drain.
+
+        * SWMM related columns:
+            NOTE: un subcatchment va a infiltrar agua en múltiples celdas
+                una celda recibe agua infiltrada desde un sólo subcatchment
+                una celda podría adicionalmente recibir agua desde un storage unit
+
+            Infiltration exchange:
+            - subcatchment (Str): Name of SWMM subcatchment that infiltrates to the cell.
+            - infiltration_storage_unit (Str, None): Name of the SWMM storage unit that infiltrates to the cell.
+            Exfiltration exchange:
+            - node (Str, None): Name of the node where the subcatchment exfiltrate. It can be a `junction`, a
+                `storage unit`, `divider` or an `outfall`. These elements have unique names in between them, so it
+                is safe to call them just `node`.
+
+        See:
+        https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/dis.html
+        https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/drn.html
+
+        Returns:
+            GeoDataFrame: A `GeoDataFrame` instance with the described columns empty.
+        """
+        geo_data_frame = GeoDataFrame()
+
+        # MODFLOW related columns
+        geo_data_frame["x"] = ""
+        geo_data_frame["y"] = ""
+        geo_data_frame["geometry"] = ""
+        geo_data_frame["elevation"] = ""
+        geo_data_frame["drn_elev"] = ""
+        geo_data_frame["drn_cond"] = ""
+
+        # SWMM related columns
+        geo_data_frame["subcatchment"] = ""
+        geo_data_frame["infiltration_storage_unit"] = ""
+        geo_data_frame["node"] = ""
+
+        return geo_data_frame
+    
+    def _build_data_frame_entrance(self, stress_period, row, column):
+        """Function that returns an array containing the following information of a
+        `MODFLOW` model instance top layer cell:
+
+        - x (Int)
+        - y (Int)
+        - geometry (Polygon)
+        - elevation
+        - drn_elev (Float)
+        - drn_cond (Float)
+
+        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
+
+        Args:
+            modflow_model (Modflow): The `Modflow` model instance to get the data from.
+            stress_period (Int): The instance stress period from where to get the information.
+            row (Int): The drain row index from the grid of the given model instance.
+            column (Int): The drain column index from the grid of the given model instance.
+
+        Returns:
+            List: A list containing all the dscibed elements of a specific grid drain (cell)
+                of the given `MODFLOW` model instance.
+        """
+        # TODO: @jricci1 Check the `stress_period_data` configuration.
+        top_layer_index = 0
+        geometry = build_geometry_polygon(self.modflow_model, row, column)
+        elevation = self.modflow_model.dis.top.array[row][column]
+        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][stress_period][top_layer_index][row][
+            column
+        ]  # drn_elev (Layer y stress period???)
+        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][stress_period][top_layer_index][row][
+            column
+        ]  # drn_cond
+
+        return [row, column, geometry, elevation, drn_elev, drn_cond]
+
+    def _add_modflow_info_to_dataframe(self, geodataframe) -> None:
+        """Function that receives an empty `GeoDataFrame` to fill with its relevant 
+        `MODFLOW` model information.
+
+        Information filled on the `GeoDataFrame`:
+        - x (Int)
+        - y (Int)
+        - geometry (Polygon)
+        - elevation (same as drn_elev)
+        - drn_elev (Float)
+        - drn_cond (Float)
+
+        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
+
+        ////////////
+        IMPORTANT: WE NEED TO CONSIDER HOW IS THIS FUNCTION GOING TO WORK WITH MORE THAN ONE STRESS PERIOD (LAYER?).
+        ////////////
+
+        Args:
+            geodataframe (GeoDataFrame): `DataFrame`to fill with information. It should come with
+                the respective columns created.
+        """
+        model_grid_rows = self.modflow_model.modelgrid.nrow
+        model_grid_cols = self.modflow_model.modelgrid.ncol
+
+        for x in range(model_grid_rows):
+            for y in range(model_grid_cols):
+                cell = self._build_data_frame_entrance(0, x, y)
+                geodataframe.loc[x * self.modflow_model.modelgrid.ny + y] = cell
 
 def empty_georeference_dataframe() -> GeoDataFrame:
     """Function that builds and returns an empty `GeoDataFrame` with all the
