@@ -1,6 +1,6 @@
-from this import d
 import flopy
 import geopandas as gpd
+
 # from pyswmm import Simulation
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
@@ -17,8 +17,8 @@ class CoupledModel:
         nodes_shp_file_path: str = None,
     ) -> None:
         """
-This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.
-It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. It allows the bidirectional and spatially distributed flux exchange between models (i.e., infiltration and exfiltration rates).
+        This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.
+        It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. It allows the bidirectional and spatially distributed flux exchange between models (i.e., infiltration and exfiltration rates).
 
         Args:
             modflow_model (Modflow):
@@ -30,9 +30,9 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
                 vía flopy para generar esta instancia que le entregaremos como argumento a esta clase.
 
                 .dis --> Te da información acerca de la grilla/celdas: qué dimensiones (x,y,z) tiene, su elevación, cuántas capas, etc.
-                         Además, te da la estructura inicial de la grilla.
-                         El archivo .dis tiene forma matricial (row vs col) donde cada celda tiene info sobre la elevación.
-                         Para sumar puntos en la trivia: .dis viene de discretization
+                            Además, te da la estructura inicial de la grilla.
+                            El archivo .dis tiene forma matricial (row vs col) donde cada celda tiene info sobre la elevación.
+                            Para sumar puntos en la trivia: .dis viene de discretization
                 .drn --> Te dice qué celdas tienen capacidad de drenar, con qué capacidad (i.e. conductancia), a qué profundidad drenan
                 .bas --> Viene de "basic". Te dice la actividad de las celdas: 1 -> activa, 0 -> inactiva, -1 -> celda de elevación constante
 
@@ -45,6 +45,8 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
                 The filepath to the SWMM subcatchments shapefile.
                 The SWMM subcatchments shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
                 It should be a polygon shapefile.
+                One atribute for each geometry on the shapefile must be the name of the subcatchment in SWMM.
+                By convention the name of the column should be "subcatch".
 
             storage_units_shp_file_path (str, optional):
                 If the SWMM model has storage units with infiltration (seepage) capacity,
@@ -52,32 +54,29 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
                 The SWMM storage units shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
                 It represents the whole area associated to the respective water body.
                 It should be a polygon shapefile.
+                One atribute for each geometry on the shapefile must be the name of the storage unite in SWMM.
+                By convention the name of the column should be "stor_unit".
 
-            TODO: @tscheuch, spatial join this two parameters please.
             nodes_shp_file_path (str, optional):
-                The filepath to the SWMM nodes shapefile.
-                It is only necessary if:
-                    (1) The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
-                    (2) The relationship between MODFLOW cells and SWMM nodes is built automatically.
-                It represents the spatial location of the SWMM nodes (i.e., junctions, storage unitis, dividers or outfalls).
-                The SWMM nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
-                It should be a points shapefile and one atribute for each geometry on the shapefile must be the name of the node in the SWMM model.
+                It is only necesary if the spatial linkage is in both directions, that is, if the drained
+                water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
+
+                If the relationship between MODFLOW cells and SWMM nodes is built auotmatically,
+                the file is a point shapefile that represents the spatial location of the SWMM nodes
+                (i.e., junctions, storage unitis, dividers or outfalls) that eventually can receive exfiltration
+                as lateral inflow.
+
+                Alternatively, if the relationship between MODFLOW cells and SWMM nodes is not built auotmatically,
+                the file is a polygon shapefile that defines zones of the aquifer that drains to existing SWMM nodes.
+                In both cases, one atribute for each geometry on the shapefile must be the name of the node in the SWMM model.
                 By convention the name of the column should be "node".
-            
-            zone_nodes_shp_file_path (str, optional):
-                The filepath to the shapefile that defines zones of the aquifer that drains to existing SWMM nodes.
-                It is only necessary if:
-                    (1) The spatial linkage is in both directions, that is, if the drained water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
-                    (2) The relationship between MODFLOW cells and SWMM nodes isn't built automatically.
-                The zone nodes shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
-                It must be a polygon shapefile. One atribute for each geometry on the shapefile must be the name of the node in SWMM where the drained water will be incorporated as lateral inflow. 
-                By convention the name of the column should be "node".
+                The shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
 
         STEPS:
         1. Validation of modflow model
             1.1 Validate `drn` package with only 1 stress period.
         2. Validation subcatchment-shape relationship is one-to-one.
-           i.e. each existing subcatchment must have a polygon with the same name on the shapefile
+            i.e. each existing subcatchment must have a polygon with the same name on the shapefile
         3. Make the spatial linktegration
         3.1. Create empty geodataframe
         3.2. Add modflow info to empty dataframe
@@ -153,7 +152,7 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
         geo_data_frame["node"] = ""
 
         return geo_data_frame
-    
+
     def _build_data_frame_entrance(self, stress_period, row, column):
         """Function that returns an array containing the following information of a
         `MODFLOW` model instance top layer cell:
@@ -181,17 +180,21 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
         top_layer_index = 0
         geometry = build_geometry_polygon(self.modflow_model, row, column)
         elevation = self.modflow_model.dis.top.array[row][column]
-        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][stress_period][top_layer_index][row][
+        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
+            stress_period
+        ][top_layer_index][row][
             column
         ]  # drn_elev (Layer y stress period???)
-        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][stress_period][top_layer_index][row][
+        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][
+            stress_period
+        ][top_layer_index][row][
             column
         ]  # drn_cond
 
         return [row, column, geometry, elevation, drn_elev, drn_cond]
 
     def _add_modflow_info_to_dataframe(self, geodataframe) -> None:
-        """Function that receives an empty `GeoDataFrame` to fill with its relevant 
+        """Function that receives an empty `GeoDataFrame` to fill with its relevant
         `MODFLOW` model information.
 
         Information filled on the `GeoDataFrame`:
@@ -219,6 +222,7 @@ It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. I
             for y in range(model_grid_cols):
                 cell = self._build_data_frame_entrance(0, x, y)
                 geodataframe.loc[x * self.modflow_model.modelgrid.ny + y] = cell
+
 
 def empty_georeference_dataframe() -> GeoDataFrame:
     """Function that builds and returns an empty `GeoDataFrame` with all the
