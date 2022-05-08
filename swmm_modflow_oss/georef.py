@@ -153,7 +153,25 @@ class CoupledModel:
 
         return geo_data_frame
 
-    def _build_data_frame_entrance(self, stress_period, row, column):
+    def _build_geometry_polygon(self, row, column):
+        """Function to build a shapely geometry `Polygon` that represents the drain from
+        the given row and column of the class `MODFLOW` model instance.
+
+        For more information on the 'get_cell_vertices` of the modelgrid, see:
+        https://flopy.readthedocs.io/en/3.3.5/source/flopy.discretization.structuredgrid.html?highlight=StructuredGrid#flopy.discretization.structuredgrid.StructuredGrid.get_cell_vertices
+
+        Args:
+            row (Int): The drain row index from the grid of the given model instance.
+            column (Int): The drain column index from the grid of the given model instance.
+
+        Returns:
+            Polygon: A `Polygon` representing the drain.
+        """
+        # The function `get_cell_vertices` as the docs state:
+        # "returns vertices for a single cell at row, column i, j."
+        coords = self.modflow_model.modelgrid.get_cell_vertices(row, column)
+        coords += [coords[0]]
+        return Polygon(coords)
         """Function that returns an array containing the following information of a
         `MODFLOW` model instance top layer cell:
 
@@ -173,23 +191,22 @@ class CoupledModel:
             column (Int): The drain column index from the grid of the given model instance.
 
         Returns:
-            List: A list containing all the dscibed elements of a specific grid drain (cell)
+            List: A list containing all the described elements of a specific grid drain (cell)
                 of the given `MODFLOW` model instance.
         """
-        # TODO: @jricci1 Check the `stress_period_data` configuration.
+        #  TODO: Find out what to do with multiple stress periods. Currently only using first stress period.
+        stress_period = 0
+        # TODO: @jricci1 Check the `stress_period_data` configuration. Done! Everything is on Telegram.
+        # Need to decide where to write it.
         top_layer_index = 0
-        geometry = build_geometry_polygon(self.modflow_model, row, column)
+        geometry = self._build_geometry_polygon(row, column)
         elevation = self.modflow_model.dis.top.array[row][column]
         drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
             stress_period
-        ][top_layer_index][row][
-            column
-        ]  # drn_elev (Layer y stress period???)
+        ][top_layer_index][row][column]
         drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][
             stress_period
-        ][top_layer_index][row][
-            column
-        ]  # drn_cond
+        ][top_layer_index][row][column]
 
         return [row, column, geometry, elevation, drn_elev, drn_cond]
 
@@ -212,7 +229,7 @@ class CoupledModel:
         ////////////
 
         Args:
-            geodataframe (GeoDataFrame): `DataFrame`to fill with information. It should come with
+            geodataframe (GeoDataFrame): `DataFrame` to fill with information. It should come with
                 the respective columns created.
         """
         model_grid_rows = self.modflow_model.modelgrid.nrow
@@ -220,8 +237,8 @@ class CoupledModel:
 
         for x in range(model_grid_rows):
             for y in range(model_grid_cols):
-                cell = self._build_data_frame_entrance(0, x, y)
-                geodataframe.loc[x * self.modflow_model.modelgrid.ny + y] = cell
+                cell = self._build_data_frame_entrance(x, y)
+                geodataframe.loc[x * self.modflow_model.modelgrid.ncol + y] = cell
 
 
 def empty_georeference_dataframe() -> GeoDataFrame:
