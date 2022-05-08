@@ -172,6 +172,8 @@ class CoupledModel:
         coords = self.modflow_model.modelgrid.get_cell_vertices(row, column)
         coords += [coords[0]]
         return Polygon(coords)
+
+    def _build_modflow_related_entrance_data(self, row, column):
         """Function that returns an array containing the following information of a
         `MODFLOW` model instance top layer cell:
 
@@ -185,8 +187,6 @@ class CoupledModel:
         See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
 
         Args:
-            modflow_model (Modflow): The `Modflow` model instance to get the data from.
-            stress_period (Int): The instance stress period from where to get the information.
             row (Int): The drain row index from the grid of the given model instance.
             column (Int): The drain column index from the grid of the given model instance.
 
@@ -209,6 +209,28 @@ class CoupledModel:
         ][top_layer_index][row][column]
 
         return [row, column, geometry, elevation, drn_elev, drn_cond]
+
+    def _build_swmm_related_entrance_data(self):
+        return ["", "", ""]
+
+    def _build_data_frame_entrance(self, row, column):
+        """Function that returns an array containing all the necesary information for the linkage
+        of a specific `MODFLOW` cell with `SWMM` elements.
+
+        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
+
+        Args:
+            modflow_model (Modflow): The `Modflow` model instance to get the data from.
+            row (Int): The drain row index from the grid of the given model instance.
+            column (Int): The drain column index from the grid of the given model instance.
+
+        Returns:
+            List: A list containing all the described elements of a specific grid drain (cell)
+                of the given `MODFLOW` model instance.
+        """
+        modflow_data = self._build_modflow_related_entrance_data(row, column)
+        swmm_data = self._build_swmm_related_entrance_data()
+        return modflow_data + swmm_data
 
     def _add_modflow_info_to_dataframe(self, geodataframe) -> None:
         """Function that receives an empty `GeoDataFrame` to fill with its relevant
