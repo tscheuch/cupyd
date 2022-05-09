@@ -87,6 +87,8 @@ class CoupledModel:
         # self.validate_modflow_model()  # this validation should occur in the init
         # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
         self.modflow_model = modflow_model
+        self.swmm_shp_file_path = swmm_shp_file_path
+        self.couple_models()
 
     def validate_modflow_model(self):
         """
@@ -232,17 +234,9 @@ class CoupledModel:
         swmm_data = self._build_swmm_related_entrance_data()
         return modflow_data + swmm_data
 
-    def _add_modflow_info_to_dataframe(self, geodataframe) -> None:
+    def _add_info_to_dataframe(self, geodataframe) -> None:
         """Function that receives an empty `GeoDataFrame` to fill with its relevant
-        `MODFLOW` model information.
-
-        Information filled on the `GeoDataFrame`:
-        - x (Int)
-        - y (Int)
-        - geometry (Polygon)
-        - elevation (same as drn_elev)
-        - drn_elev (Float)
-        - drn_cond (Float)
+        information in order to link `MODFLOW` with `SWMM` model information.
 
         See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
 
@@ -261,6 +255,21 @@ class CoupledModel:
             for y in range(model_grid_cols):
                 cell = self._build_data_frame_entrance(x, y)
                 geodataframe.loc[x * self.modflow_model.modelgrid.ncol + y] = cell
+
+    def couple_models(self):
+        self.geo_dataframe = self._create_empty_georeference_dataframe()
+        self._add_info_to_dataframe(self.geo_dataframe)
+        self.geo_dataframe.crs = self.modflow_model.modelgrid.proj4
+        self.geo_dataframe["centroids"] = self.geo_dataframe["geometry"].centroid
+
+        self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
+
+        swmm_geodf = gpd.read_file(self.swmm_shp_file_path)
+
+        joined_data = self.geo_dataframe.sjoin(swmm_geodf, how="inner", predicate="intersects")
+
+        self.joined_data = joined_data.set_geometry("geometry")
+        return joined_data
 
 
 def empty_georeference_dataframe() -> GeoDataFrame:
