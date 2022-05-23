@@ -88,6 +88,8 @@ class CoupledModel:
         # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
         self.modflow_model = modflow_model
         self.swmm_shp_file_path = swmm_shp_file_path
+        self.storage_units_shp_file_path = storage_units_shp_file_path
+        self.nodes_shp_file_path = nodes_shp_file_path
         self.couple_models()
 
     def validate_modflow_model(self):
@@ -130,6 +132,9 @@ class CoupledModel:
             - node (Str, None): Name of the node where the subcatchment exfiltrate. It can be a `junction`, a
                 `storage unit`, `divider` or an `outfall`. These elements have unique names in between them, so it
                 is safe to call them just `node`.
+
+        TODO: Use Pandas better in order add a column from modflow directly. Tschech suggested to creat an
+        empty geodataframe and paste the columns directly.
 
         See:
         https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/dis.html
@@ -213,6 +218,26 @@ class CoupledModel:
         return [row, column, geometry, elevation, drn_elev, drn_cond]
 
     def _build_swmm_related_entrance_data(self):
+        """Function that returns an array containing the following information of a
+        `SWMM` model instance top layer cell:
+
+        - x (Int)
+        - y (Int)
+        - geometry (Polygon)
+        - elevation
+        - drn_elev (Float)
+        - drn_cond (Float)
+
+        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
+
+        Args:
+            row (Int): The drain row index from the grid of the given model instance.
+            column (Int): The drain column index from the grid of the given model instance.
+
+        Returns:
+            List: A list containing all the described elements of a specific grid drain (cell)
+                of the given `MODFLOW` model instance.
+        """
         return ["", "", ""]
 
     def _build_data_frame_entrance(self, row, column):
@@ -222,7 +247,6 @@ class CoupledModel:
         See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
 
         Args:
-            modflow_model (Modflow): The `Modflow` model instance to get the data from.
             row (Int): The drain row index from the grid of the given model instance.
             column (Int): The drain column index from the grid of the given model instance.
 
@@ -259,15 +283,35 @@ class CoupledModel:
     def couple_models(self):
         self.geo_dataframe = self._create_empty_georeference_dataframe()
         self._add_info_to_dataframe(self.geo_dataframe)
+        # TODO: Check what if some modflow model comes without projection
+        # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
         self.geo_dataframe.crs = self.modflow_model.modelgrid.proj4
         self.geo_dataframe["centroids"] = self.geo_dataframe["geometry"].centroid
 
         self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
 
+        # SPATIAL JOIN SUBCATCHMENTS
+
         swmm_geodf = gpd.read_file(self.swmm_shp_file_path)
 
         joined_data = self.geo_dataframe.sjoin(
             swmm_geodf, how="inner", predicate="intersects"
+        )
+
+        # SPATIAL JOIN STORAGE UNITS
+
+        storage_unit_geodf = gpd.read_file(self.storage_units_shp_file_path)
+
+        joined_data = self.geo_dataframe.sjoin(
+            storage_unit_geodf, how="inner", predicate="intersects"
+        )
+
+        # SPATIAL JOIN NODES (only IF polygons)
+
+        nodes_geodf = gpd.read_file(self.nodes_shp_file_path)
+
+        joined_data = self.geo_dataframe.sjoin(
+            nodes_geodf, how="inner", predicate="intersects"
         )
 
         self.joined_data = joined_data.set_geometry("geometry")
