@@ -5,6 +5,7 @@ import geopandas as gpd
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon
+import numpy as np
 
 
 class CoupledModel:
@@ -149,9 +150,9 @@ class CoupledModel:
         geo_data_frame["x"] = ""
         geo_data_frame["y"] = ""
         geo_data_frame["geometry"] = ""
-        geo_data_frame["elevation"] = ""
-        geo_data_frame["drn_elev"] = ""
-        geo_data_frame["drn_cond"] = ""
+        # geo_data_frame["elevation"] = ""
+        # geo_data_frame["drn_elev"] = ""
+        # geo_data_frame["drn_cond"] = ""
 
         # SWMM related columns
         geo_data_frame["subcatchment"] = ""
@@ -187,9 +188,9 @@ class CoupledModel:
         - x (Int)
         - y (Int)
         - geometry (Polygon)
-        - elevation
-        - drn_elev (Float)
-        - drn_cond (Float)
+        - elevation --> Build with numpy
+        - drn_elev (Float) --> Build with numpy
+        - drn_cond (Float) --> Build with numpy
 
         See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
 
@@ -201,21 +202,9 @@ class CoupledModel:
             List: A list containing all the described elements of a specific grid drain (cell)
                 of the given `MODFLOW` model instance.
         """
-        #  TODO: Find out what to do with multiple stress periods. Currently only using first stress period.
-        stress_period = 0
-        # TODO: @jricci1 Check the `stress_period_data` configuration. Done! Everything is on Telegram.
-        # Need to decide where to write it.
-        top_layer_index = 0
         geometry = self._build_geometry_polygon(row, column)
-        elevation = self.modflow_model.dis.top.array[row][column]
-        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
-            stress_period
-        ][top_layer_index][row][column]
-        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][
-            stress_period
-        ][top_layer_index][row][column]
 
-        return [row, column, geometry, elevation, drn_elev, drn_cond]
+        return [row, column, geometry]
 
     def _build_swmm_related_entrance_data(self):
         """Function that returns an array containing the following information of a
@@ -279,6 +268,25 @@ class CoupledModel:
             for y in range(model_grid_cols):
                 cell = self._build_data_frame_entrance(x, y)
                 geodataframe.loc[x * self.modflow_model.modelgrid.ncol + y] = cell
+        
+        #  TODO: Find out what to do with multiple stress periods. Currently only using first stress period.
+        stress_period = 0
+        # TODO: @jricci1 Check the `stress_period_data` configuration. Done! Everything is on Telegram.
+        # Need to decide where to write it.
+        top_layer_index = 0
+        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
+            stress_period
+        ][top_layer_index]
+
+        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][
+            stress_period
+        ][top_layer_index]
+
+        elevation = self.modflow_model.dis.top.array
+
+        self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
+        self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
+        self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
 
     def couple_models(self):
         self.geo_dataframe = self._create_empty_georeference_dataframe()
