@@ -1,11 +1,11 @@
 import flopy
 import geopandas as gpd
+import numpy as np
 
 # from pyswmm import Simulation
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon
-import numpy as np
 
 
 class CoupledModel:
@@ -268,7 +268,7 @@ class CoupledModel:
             for y in range(model_grid_cols):
                 cell = self._build_data_frame_entrance(x, y)
                 geodataframe.loc[x * self.modflow_model.modelgrid.ncol + y] = cell
-        
+
         #  TODO: Find out what to do with multiple stress periods. Currently only using first stress period.
         stress_period = 0
         # TODO: @jricci1 Check the `stress_period_data` configuration. Done! Everything is on Telegram.
