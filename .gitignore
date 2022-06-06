@@ -1,2 +1,5 @@
 # Ignore virtual environment
 .venv
+
+# Ignore build files
+dist/*
