@@ -15,7 +15,8 @@ venv-with-dependencies:
 	poetry run pip install --upgrade pip
 	poetry install
 
-# GHA Workflows
+# Building
+# ========
 .PHONY: build
 build:
 	poetry install --no-dev
@@ -24,16 +25,16 @@ build:
 build-dev:
 	poetry install
 
-
-# LINTERS
+# Linting
+# =======
 black:
-	poetry run black swmm_modflow_oss --check
+	poetry run black --check .
 
 black!:
-	poetry run black swmm_modflow_oss
+	poetry run black .
 
 isort:
-	poetry run isort swmm_modflow_oss/* --check --settings-path ./pyproject.toml --diff
+	poetry run isort . --check --diff
 
 isort!:
-	poetry run isort swmm_modflow_oss/* --settings-path ./pyproject.toml
+	poetry run isort .
