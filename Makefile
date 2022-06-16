@@ -1,11 +1,13 @@
-POETRY_VERSION = 1.1.10
+POETRY_VERSION = 1.2.0b2
 PYTHON_VERSION = 3.8
 
 # Managing
 # ========
 .PHONY: poetry
 poetry:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - --version $(POETRY_VERSION)
+	# Please make sure the <python> interpreter is pointing to Python 3.7 or higher.
+	# If that's not the case, run this command manually by setting a proper version.
+	curl -sSL https://install.python-poetry.org | python - --version $(POETRY_VERSION)
 
 .PHONY: venv-with-dependencies
 venv-with-dependencies:
