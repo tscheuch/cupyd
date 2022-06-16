@@ -1,5 +1,8 @@
 # Ignore virtual environment
+.DS_Store
 .venv
+__pycache__
 
 # Ignore build files
 dist/*
+temp_modflow*

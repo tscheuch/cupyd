@@ -1,11 +1,10 @@
-import flopy
 import geopandas as gpd
-import numpy as np
 
 # from pyswmm import Simulation
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
-from shapely.geometry import Polygon
+import numpy as np
+from timeit import default_timer as timer
 
 
 class CoupledModel:
@@ -83,7 +82,6 @@ class CoupledModel:
         3.2. Add modflow info to empty dataframe
         3.3.
         """
-        pass
 
         # self.validate_modflow_model()  # this validation should occur in the init
         # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
@@ -104,9 +102,9 @@ class CoupledModel:
     def validate_subcatch_shp_relationship(self):
         pass
 
-    @staticmethod
-    def _create_empty_georeference_dataframe() -> GeoDataFrame:
-        """Function that builds and returns an empty `GeoDataFrame` with all the
+
+    def build_geodataframe(self) -> GeoDataFrame:
+        """Function that builds and returns a `GeoDataFrame` with all the
         necessary columns for the spatial linkage between a `Modflow` model and a SWMM model.
 
         All the `GeoDataFrame` columns needed for the spacial linkage are:
@@ -134,8 +132,8 @@ class CoupledModel:
                 `storage unit`, `divider` or an `outfall`. These elements have unique names in between them, so it
                 is safe to call them just `node`.
 
-        TODO: Use Pandas better in order add a column from modflow directly. Tschech suggested to creat an
-        empty geodataframe and paste the columns directly.
+        TODO: Use a `temp` file for the generated modfow grid shapefile.
+        TODO: Check how to avoid creating that file.
 
         See:
         https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/dis.html
@@ -144,135 +142,7 @@ class CoupledModel:
         Returns:
             GeoDataFrame: A `GeoDataFrame` instance with the described columns empty.
         """
-        geo_data_frame = GeoDataFrame()
-
-        # MODFLOW related columns
-        geo_data_frame["x"] = ""
-        geo_data_frame["y"] = ""
-        geo_data_frame["geometry"] = ""
-        # geo_data_frame["elevation"] = ""
-        # geo_data_frame["drn_elev"] = ""
-        # geo_data_frame["drn_cond"] = ""
-
-        # SWMM related columns
-        geo_data_frame["subcatchment"] = ""
-        geo_data_frame["infiltration_storage_unit"] = ""
-        geo_data_frame["node"] = ""
-
-        return geo_data_frame
-
-    def _build_geometry_polygon(self, row, column):
-        """Function to build a shapely geometry `Polygon` that represents the drain from
-        the given row and column of the class `MODFLOW` model instance.
-
-        For more information on the 'get_cell_vertices` of the modelgrid, see:
-        https://flopy.readthedocs.io/en/3.3.5/source/flopy.discretization.structuredgrid.html?highlight=StructuredGrid#flopy.discretization.structuredgrid.StructuredGrid.get_cell_vertices
-
-        Args:
-            row (Int): The drain row index from the grid of the given model instance.
-            column (Int): The drain column index from the grid of the given model instance.
-
-        Returns:
-            Polygon: A `Polygon` representing the drain.
-        """
-        # The function `get_cell_vertices` as the docs state:
-        # "returns vertices for a single cell at row, column i, j."
-        coords = self.modflow_model.modelgrid.get_cell_vertices(row, column)
-        coords += [coords[0]]
-        return Polygon(coords)
-
-    def _build_modflow_related_entrance_data(self, row, column):
-        """Function that returns an array containing the following information of a
-        `MODFLOW` model instance top layer cell:
-
-        - x (Int)
-        - y (Int)
-        - geometry (Polygon)
-        - elevation --> Build with numpy
-        - drn_elev (Float) --> Build with numpy
-        - drn_cond (Float) --> Build with numpy
-
-        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
-
-        Args:
-            row (Int): The drain row index from the grid of the given model instance.
-            column (Int): The drain column index from the grid of the given model instance.
-
-        Returns:
-            List: A list containing all the described elements of a specific grid drain (cell)
-                of the given `MODFLOW` model instance.
-        """
-        geometry = self._build_geometry_polygon(row, column)
-
-        return [row, column, geometry]
-
-    def _build_swmm_related_entrance_data(self):
-        """Function that returns an array containing the following information of a
-        `SWMM` model instance top layer cell:
-
-        - x (Int)
-        - y (Int)
-        - geometry (Polygon)
-        - elevation
-        - drn_elev (Float)
-        - drn_cond (Float)
-
-        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
-
-        Args:
-            row (Int): The drain row index from the grid of the given model instance.
-            column (Int): The drain column index from the grid of the given model instance.
-
-        Returns:
-            List: A list containing all the described elements of a specific grid drain (cell)
-                of the given `MODFLOW` model instance.
-        """
-        return ["", "", ""]
-
-    def _build_data_frame_entrance(self, row, column):
-        """Function that returns an array containing all the necesary information for the linkage
-        of a specific `MODFLOW` cell with `SWMM` elements.
-
-        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
-
-        Args:
-            row (Int): The drain row index from the grid of the given model instance.
-            column (Int): The drain column index from the grid of the given model instance.
-
-        Returns:
-            List: A list containing all the described elements of a specific grid drain (cell)
-                of the given `MODFLOW` model instance.
-        """
-        modflow_data = self._build_modflow_related_entrance_data(row, column)
-        swmm_data = self._build_swmm_related_entrance_data()
-        return modflow_data + swmm_data
-
-    def _add_info_to_dataframe(self, geodataframe) -> None:
-        """Function that receives an empty `GeoDataFrame` to fill with its relevant
-        information in order to link `MODFLOW` with `SWMM` model information.
-
-        See the `_create_empty_georeference_dataframe` docstrings for a better understanding on the variables.
-
-        ////////////
-        IMPORTANT: WE NEED TO CONSIDER HOW IS THIS FUNCTION GOING TO WORK WITH MORE THAN ONE STRESS PERIOD (LAYER?).
-        ////////////
-
-        Args:
-            geodataframe (GeoDataFrame): `DataFrame` to fill with information. It should come with
-                the respective columns created.
-        """
-        model_grid_rows = self.modflow_model.modelgrid.nrow
-        model_grid_cols = self.modflow_model.modelgrid.ncol
-
-        for x in range(model_grid_rows):
-            for y in range(model_grid_cols):
-                cell = self._build_data_frame_entrance(x, y)
-                geodataframe.loc[x * self.modflow_model.modelgrid.ncol + y] = cell
-
-        #  TODO: Find out what to do with multiple stress periods. Currently only using first stress period.
         stress_period = 0
-        # TODO: @jricci1 Check the `stress_period_data` configuration. Done! Everything is on Telegram.
-        # Need to decide where to write it.
         top_layer_index = 0
         drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
             stress_period
@@ -284,18 +154,24 @@ class CoupledModel:
 
         elevation = self.modflow_model.dis.top.array
 
+        # TODO: Check what if some modflow model comes without projection
+        # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
+        # The shape file adds the crs to the data frame
+        self.modflow_model.modelgrid.write_shapefile('./temp_modflow.shp')
+        self.geo_dataframe=gpd.read_file('./temp_modflow.shp')
+        self.geo_dataframe = self.geo_dataframe.drop(columns=["node"])
+        self.geo_dataframe = self.geo_dataframe.rename(columns={"row": "x", "column": "y"})
         self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
         self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
         self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
+        return self.geo_dataframe
+
 
     def couple_models(self):
-        self.geo_dataframe = self._create_empty_georeference_dataframe()
-        self._add_info_to_dataframe(self.geo_dataframe)
-        # TODO: Check what if some modflow model comes without projection
-        # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
-        self.geo_dataframe.crs = self.modflow_model.modelgrid.proj4
-        self.geo_dataframe["centroids"] = self.geo_dataframe["geometry"].centroid
+        self.build_geodataframe()
 
+        # Set the poligon centroids for the spatial joins
+        self.geo_dataframe["centroids"] = self.geo_dataframe["geometry"].centroid
         self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
 
         # SPATIAL JOIN SUBCATCHMENTS
@@ -306,6 +182,8 @@ class CoupledModel:
             swmm_geodf, how="inner", predicate="intersects"
         )
 
+        self.geo_dataframe["subcatchment"] = joined_data["S"]
+
         # SPATIAL JOIN STORAGE UNITS
 
         storage_unit_geodf = gpd.read_file(self.storage_units_shp_file_path)
@@ -313,6 +191,8 @@ class CoupledModel:
         joined_data = self.geo_dataframe.sjoin(
             storage_unit_geodf, how="inner", predicate="intersects"
         )
+
+        self.geo_dataframe["infiltration_storage_unit"] = joined_data["stor_unit"]
 
         # SPATIAL JOIN NODES (only IF polygons)
 
@@ -322,5 +202,7 @@ class CoupledModel:
             nodes_geodf, how="inner", predicate="intersects"
         )
 
-        self.joined_data = joined_data.set_geometry("geometry")
-        return joined_data
+        self.geo_dataframe["node"] = joined_data["node"]
+
+        self.geo_dataframe = self.geo_dataframe.set_geometry("geometry")
+        return self.geo_dataframe
