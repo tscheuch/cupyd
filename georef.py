@@ -1,10 +1,11 @@
+from timeit import default_timer as timer
+
 import geopandas as gpd
+import numpy as np
 
 # from pyswmm import Simulation
 from flopy.modflow import Modflow
 from geopandas import GeoDataFrame
-import numpy as np
-from timeit import default_timer as timer
 
 
 class CoupledModel:
@@ -102,7 +103,6 @@ class CoupledModel:
     def validate_subcatch_shp_relationship(self):
         pass
 
-
     def build_geodataframe(self) -> GeoDataFrame:
         """Function that builds and returns a `GeoDataFrame` with all the
         necessary columns for the spatial linkage between a `Modflow` model and a SWMM model.
@@ -157,15 +157,16 @@ class CoupledModel:
         # TODO: Check what if some modflow model comes without projection
         # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
         # The shape file adds the crs to the data frame
-        self.modflow_model.modelgrid.write_shapefile('./temp_modflow.shp')
-        self.geo_dataframe=gpd.read_file('./temp_modflow.shp')
+        self.modflow_model.modelgrid.write_shapefile("./temp_modflow.shp")
+        self.geo_dataframe = gpd.read_file("./temp_modflow.shp")
         self.geo_dataframe = self.geo_dataframe.drop(columns=["node"])
-        self.geo_dataframe = self.geo_dataframe.rename(columns={"row": "x", "column": "y"})
+        self.geo_dataframe = self.geo_dataframe.rename(
+            columns={"row": "x", "column": "y"}
+        )
         self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
         self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
         self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
         return self.geo_dataframe
-
 
     def couple_models(self):
         self.build_geodataframe()
