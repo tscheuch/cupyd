@@ -34,22 +34,21 @@ The integration scheme is composed of 3 modules:
 - MODFLOW Results
 - Integration Results
 
-
-
-
-# Library Usage :construction: (for us now)
+# Library usage (WIP)
 
 For the setup and many other things, we have defined many utilities on the Makefile to facilitate your work.
 None of them are quite complex, so you are welcome to go and check them or even run the commands separately.
 
 To facilitate the instructions, we use them all around.
 
-1. Ensure that you have python 3.8 installed
-2. Install poetry using our custom utilities from the Makefile
-```bash
-make poetry
+1. Ensure that you have Python 3.8 (or higher) installed.
+
+2. Make [Poetry](https://python-poetry.org/) by installing it with our custom Makefile target.
+```sh
+$ make poetry
 ```
-3. Create a virtual environment and install the project dependencies on it
-```bash
-make venv-with-dependencies
+
+3. Create a [virtual environment](https://docs.python.org/3/library/venv.html) to install the project dependencies.
+```sh
+$ make venv-with-dependencies
 ```
