@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v3
         id: nicanor
         with:
-          key: ${{ hashFiles('**/poetry.lock') }}-on-${{ steps.pysetup.outputs.python-version }}
+          key: ${{ hashFiles('**/poetry.lock') }}-on-python-${{ steps.pysetup.outputs.python-version }}
           path: .venv
 
       - name: Install dependencies
