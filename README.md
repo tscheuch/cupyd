@@ -1,4 +1,11 @@
-# Integration scheme for coupling SWMM and MODFLOW
+<p align="center">
+  <img width="100" height="100" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/320/apple/325/heart-with-arrow_1f498.png" alt='cupyd'>
+</p>
+
+<p align="center"><strong>cupyd --</strong> a romantic integration scheme between SWMM & MODFLOW</p>
+
+---
+
 The integration scheme is composed of 3 modules:
 * Spatial Integration of SWMM and MODFLOW elements
 * Coupled SWMM and MODFLOW Simulation: Loop for temporal and spatial data exchange
