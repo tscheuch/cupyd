@@ -33,7 +33,7 @@ jobs:
       # In order to do that, we need to put them into the .venv directory.
       # Reference: https://python-poetry.org/docs/master/configuration
       - name: Set up Poetry cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: nicanor
         with:
           key: ${{ hashFiles('**/poetry.lock') }}-on-${{ steps.pysetup.outputs.python-version }}
