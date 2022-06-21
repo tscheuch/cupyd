@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swmm-modflow-oss"
+name = "cupyd"
 version = "0.1.0"
-description = "A refrehsing integration scheme for coupling SWMM & MODFLOW"
+description = "A romantic integration scheme between SWMM & MODFLOW"
 keywords = ["flopy", "pyswmm"]
 
 # license = "TBD"
@@ -12,7 +12,7 @@ authors = [
 ]
 
 readme = "README.md"
-repository = "https://github.com/tscheuch/SWMM_MODFLOW_OSS"
+repository = "https://github.com/tscheuch/cupyd"
 
 # We use a tilde (~) instead of a caret (^) for dependencies
 # that do not follow a strict semver-driven releasing system.
