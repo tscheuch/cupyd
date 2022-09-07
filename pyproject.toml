@@ -14,27 +14,24 @@ keywords = ["flopy", "pyswmm"]
 [tool.poetry.dependencies]
 python = "^3.8"
 flopy = "^3.3"
+fiona = { version = "1.8.21", source = "localwheels"}
+gdal = { version = "3.4.3", source = "localwheels" }
 geopandas = "^0.10"
 matplotlib = "^3.5"
 pyshp = "^2.3.0"
 # pyswmm = "^1.1"
 rtree = "^1.0"
-fiona = [
-    { platform = "darwin", version = "1.8.21" },
-    { platform = "linux", version = "1.8.21" },
-    { platform = "win32", file = "Fiona-1.8.21-cp310-cp310-win_amd64.whl"}
-]
-gdal = [
-    { platform = "darwin", version = "3.4.3" },
-    { platform = "linux", version = "3.4.3" },
-    { platform = "win32", file = "GDAL-3.4.3-cp310-cp310-win_amd64.whl"}
-]
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.3"
 isort = "^5.10.1"
 
-# LINTER CONFIGURATIONS
+[[tool.poetry.source]]
+name = "localwheels"
+url = "http://nebil.github.io/moepypi"
+default = false
+secondary = true
+
 [tool.black]
 line-length = 88
 
