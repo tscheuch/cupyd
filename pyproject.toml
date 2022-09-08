@@ -14,8 +14,16 @@ keywords = ["flopy", "pyswmm"]
 [tool.poetry.dependencies]
 python = "^3.8"
 flopy = "^3.3"
-fiona = { version = "1.8.21", source = "localwheels"}
-gdal = { version = "3.4.3", source = "localwheels" }
+fiona = [
+    { platform = "darwin", version = "1.8.21", source = "pypi" },
+    { platform = "linux", version = "1.8.21", source = "pypi" },
+    { platform = "win32", version = "1.8.21", source = "localwheels" }
+]
+gdal = [
+    { platform = "darwin", version = "3.4.3", source = "pypi" },
+    { platform = "linux", version = "3.4.3", source = "pypi" },
+    { platform = "win32", version = "3.4.3", source = "localwheels" }
+]
 geopandas = "^0.10"
 matplotlib = "^3.5"
 pyshp = "^2.3.0"
