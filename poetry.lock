@@ -111,13 +111,12 @@ certifi = "*"
 click = ">=4.0"
 click-plugins = ">=1.0"
 cligj = ">=0.5"
-gdal = ">=3.4.3,<3.5.0"
 munch = "*"
 setuptools = "*"
 six = ">=1.7"
 
 [package.extras]
-all = ["shapely", "pytest-cov", "pytest (>=3)", "boto3 (>=1.2.4)", "mock"]
+all = ["pytest-cov", "boto3 (>=1.2.4)", "shapely", "pytest (>=3)", "mock"]
 calc = ["shapely"]
 s3 = ["boto3 (>=1.2.4)"]
 test = ["pytest (>=3)", "pytest-cov", "boto3 (>=1.2.4)", "mock"]
@@ -171,6 +170,11 @@ python-versions = ">=3.6.0"
 
 [package.extras]
 numpy = ["numpy (>1.0.0)"]
+
+[package.source]
+type = "legacy"
+url = "http://nebil.github.io/moepypi"
+reference = "localwheels"
 
 [[package]]
 name = "geopandas"
@@ -449,7 +453,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f80e9c80288313a7b894d713813121e8327a641b6f61eab73941eb3378279534"
+content-hash = "79a982f9e241a2027e7a5a2c7a7a338bcf72ec13792fa28406b704d89969a465"
 
 [metadata.files]
 attrs = [
@@ -506,7 +510,9 @@ cycler = [
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
 ]
 fiona = [
+    {file = "Fiona-1.8.21-cp310-cp310-win_amd64.whl", hash = "sha256:20cb819eef56c57f356cce4fea3b0384da956aab20beed4b2826b73acf1a04b5"},
     {file = "Fiona-1.8.21-cp38-cp38-win_amd64.whl", hash = "sha256:75696223071188f5fa1c0fc5e61cefb073796365ce263c8b65026f311ba90aef"},
+    {file = "Fiona-1.8.21.tar.gz", hash = "sha256:3a0edca2a7a070db405d71187214a43d2333a57b4097544a3fcc282066a58bfc"},
 ]
 flopy = [
     {file = "flopy-3.3.5.zip", hash = "sha256:7407048751fda6bbdcb155e0a7304170ae8bb27d1fa031fc8d8189c129130da9"},
@@ -516,6 +522,8 @@ fonttools = [
     {file = "fonttools-4.37.1.zip", hash = "sha256:4606e1a88ee1f6699d182fea9511bd9a8a915d913eab4584e5226da1180fcce7"},
 ]
 gdal = [
+    {file = "GDAL-3.4.3-cp310-cp310-win_amd64.whl", hash = "sha256:9893da5532a6c5dadc1fc3bc402ae29d161b7cf190d778f129da84d0e50baa29"},
+    {file = "GDAL-3.4.3-cp38-cp38-win_amd64.whl", hash = "sha256:72f6d5354f015c83a91f5985324fa6186827eb57f1c6a421dded5af4cadad61b"},
     {file = "GDAL-3.4.3.tar.gz", hash = "sha256:f4f4b0bb34073b164c5a05a1b0eb44af47349e5606eb7b75244c2167ac462f36"},
 ]
 geopandas = [
