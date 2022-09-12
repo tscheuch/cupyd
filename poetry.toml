@@ -1,0 +1,8 @@
+# We aim to establish the usage of the directory named .venv
+# as the common location for the virtualenv, so we can cache
+# and then *retrieve* all the installed dependencies from it.
+
+# For further information about this matter, please refer to:
+# <https://python-poetry.org/docs/master/configuration>
+[virtualenvs]
+in-project = true

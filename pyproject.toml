@@ -1,15 +1,23 @@
 [tool.poetry]
-name = "swmm-modflow-oss"
+name = "cupyd"
 version = "0.1.0"
-description = "Integration scheme for coupling SWMM and MODFLOW"
-authors = [
-    "tscheuch <tscheuch@uc.cl>",
-    "jricci1 <jricci1@uc.cl>",
-    "nebil <nebil@uc.cl>",
-]
-readme = "README.md"
-repository = "https://github.com/tscheuch/SWMM_MODFLOW_OSS"
+description = "A romantic integration scheme between SWMM & MODFLOW"
 keywords = ["flopy", "pyswmm"]
+
+# license = "TBD"
+authors = [
+    "Teresita Scheuch <tscheuch@uc.cl>",
+    "Joaquín Ricci <jricci1@uc.cl>",
+    "Nebil Kawas <nebil@uc.cl>",
+]
+
+readme = "README.md"
+repository = "https://github.com/tscheuch/cupyd"
+
+# We use a tilde (~) instead of a caret (^) for dependencies
+# that do not follow a strict semver-driven releasing system.
+# For further information about this matter, please refer to
+# <https://python-poetry.org/docs/master/dependency-specification/>
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -18,13 +26,13 @@ fiona = { version = "1.8.21", source = "localwheels" }
 gdal = { version = "3.4.3", source = "localwheels" }
 geopandas = "^0.10"
 matplotlib = "^3.5"
-pyshp = "^2.3.0"
-# pyswmm = "^1.1"
+pyshp = "^2.3"
+pyswmm = "^1.2.0"
 rtree = "^1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.3"
-isort = "^5.10.1"
+isort = "^5.10"
 
 [[tool.poetry.source]]
 name = "localwheels"
@@ -34,6 +42,7 @@ secondary = false
 
 [tool.black]
 line-length = 88
+target-version = ["py38"]
 
 [tool.isort]
 profile = "black"

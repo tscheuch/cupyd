@@ -1,8 +1,10 @@
-# Ignore virtual environment
-.DS_Store
+# Ignore some development files
 .venv
 __pycache__
+dist/
 
-# Ignore build files
-dist/*
+# Ignore some auxiliary files
 temp_modflow*
+
+# Ignore some... miscellanea?
+.DS_Store
