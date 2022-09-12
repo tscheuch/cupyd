@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.nicanor.outputs.cache-hit != 'true'
-        run: poetry install
+        run: poetry install --only dev
 
       - name: Lint using all of our linters
         run: make --jobs black isort
