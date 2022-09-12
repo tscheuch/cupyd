@@ -1,0 +1,28 @@
+
+  OWA STORM WATER MANAGEMENT MODEL - VERSION v5.1.14 (OWA 2022-07-31)
+  --------------------------------------------------------------
+
+  WARNING 10: crest elevation raised to downstream invert for regulator Link O2
+  WARNING 02: maximum depth increased for Node J6
+  WARNING 02: maximum depth increased for Node J8
+  WARNING 02: maximum depth increased for Node J7
+  WARNING 02: maximum depth increased for Node J1
+  WARNING 02: maximum depth increased for Node J2
+  WARNING 02: maximum depth increased for Node J5
+  WARNING 02: maximum depth increased for Node J4
+  WARNING 02: maximum depth increased for Node J3
+  WARNING 02: maximum depth increased for Node N1
+  
+  *********************
+  Rainfall File Summary
+  *********************
+  Station    First        Last         Recording   Periods    Periods    Periods
+  ID         Date         Date         Frequency  w/Precip    Missing    Malfunc.
+  -------------------------------------------------------------------------------
+
+  
+  ERROR 317: cannot open rainfall data file llqh_horaria_16_19.dat.
+
+  Analysis begun on:  Mon Sep 12 20:38:30 2022
+  Analysis ended on:  Mon Sep 12 20:38:30 2022
+  Total elapsed time: < 1 sec

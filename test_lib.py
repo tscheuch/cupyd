@@ -5,6 +5,7 @@ import flopy
 import matplotlib.pyplot as plt
 
 from georef import CoupledModel
+from simulation.simulation import CoupledSimulation
 
 MODFLOW_WORKSPACE = Path(__file__).resolve().parent
 print(MODFLOW_WORKSPACE)
@@ -29,6 +30,10 @@ nodes_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_nodes_zones.shp"
 coupled_model = CoupledModel(
     ml, subcatchment_shp, storage_units_shp_file_path, nodes_shp_file_path
 )
+
+with CoupledSimulation(coupled_model=coupled_model, coupled_data=None,  inputfile="llanquihue/SWMM/Llanquihue_base.inp") as sim:
+    for step in sim:
+        print(step.current_time)
 
 gdf_final = coupled_model.geo_dataframe
 

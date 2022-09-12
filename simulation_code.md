@@ -166,7 +166,7 @@ with Simulation(SWMM_path) as sim:
             RCH_su_df=pd.DataFrame({"su":su_names_list, "RCH_su":RCH_su_M})
           
 
-            #Gereferenced RCH: Add to the MODFLOW_gdf_test new columns RCH_s, RCH_su
+            #Gereferenced RCH: Add to the MODFLOW_gdf_loop new columns RCH_s, RCH_su
             
             MODFLOW_gdf_loop=pd.DataFrame()
             
