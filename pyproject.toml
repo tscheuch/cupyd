@@ -22,6 +22,8 @@ repository = "https://github.com/tscheuch/cupyd"
 [tool.poetry.dependencies]
 python = "^3.8"
 flopy = "^3.3"
+fiona = { version = "1.8.21", source = "localwheels" }
+gdal = { version = "3.4.3", source = "localwheels" }
 geopandas = "^0.10"
 matplotlib = "^3.5"
 pyshp = "^2.3"
@@ -29,8 +31,14 @@ pyswmm = "^1.2.0"
 rtree = "^1.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.3"
+black = "^22.8"
 isort = "^5.10"
+
+[[tool.poetry.source]]
+name = "localwheels"
+url = "http://nebil.github.io/moepypi"
+default = false
+secondary = false
 
 [tool.black]
 line-length = 88
