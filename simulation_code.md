@@ -1,3 +1,4 @@
+```python
 # Load SWMM model
 dire="SWMM_Llanquihue"
 file="/Llanquihue_base.inp"
@@ -307,4 +308,4 @@ with Simulation(SWMM_path) as sim:
             
 print("Flow Routing Mass Balance Error:", sim.flow_routing_error)
 print("Runoff Mass Balance Error:", sim.runoff_error)
-
+```
