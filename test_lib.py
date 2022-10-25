@@ -8,11 +8,11 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 import flopy
 import matplotlib.pyplot as plt
 import numpy
+import pandas
 from pyswmm import Links, Nodes, Simulation, Subcatchments
 
 from georef import CoupledModel
 from simulation.simulation import CoupledSimulation
-import pandas
 
 MODFLOW_WORKSPACE = Path(__file__).resolve().parent
 print(MODFLOW_WORKSPACE)
@@ -51,6 +51,9 @@ with CoupledSimulation(
     coupled_data=None,
     inputfile="llanquihue/SWMM/Llanquihue_base.inp",
 ) as sim:
+
+    nrows = sim.modflow_model.dis.nrow
+    ncols = sim.modflow_model.dis.ncol
     # sim.add_before_step(test_before_start)
     # sim.step_advance(86400) # 1 day
     sim.step_advance(3600)  # 1 hour
@@ -65,9 +68,15 @@ with CoupledSimulation(
     storage_units_cumulative_infiltration = {
         storage_unit.nodeid: 0 for storage_unit in storage_units
     }
-    sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(lambda row: row.geometry.area, axis=1)
-    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum()["area"]
-    storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby("infiltration_storage_unit").sum()["area"]
+    sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(
+        lambda row: row.geometry.area, axis=1
+    )
+    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
+        "subcatchment"
+    ).sum()["area"]
+    storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
+        "infiltration_storage_unit"
+    ).sum()["area"]
     for step in sim:
         hours += 1
         # print(sim.current_time)
@@ -159,9 +168,7 @@ with CoupledSimulation(
                 # Delta infiltration
                 # Do this to get the actual node as a `Storage`
                 storage_unit = Nodes(sim)[su.nodeid]
-                print(storage_unit)
-                print(storage_unit.storage_statistics)
-                
+
                 modflow_recharge_from_storage_units[storage_unit.nodeid] = (
                     storage_unit.storage_statistics["exfil_loss"]
                     - storage_units_cumulative_infiltration[storage_unit.nodeid]
@@ -169,9 +176,51 @@ with CoupledSimulation(
                 storage_units_cumulative_infiltration[
                     storage_unit.nodeid
                 ] = storage_unit.storage_statistics["exfil_loss"]
-            
-            modflow_recharge_from_subcatchment_serie = pandas.Series(modflow_recharge_from_subcatchment)
-            modflow_recharge_from_storage_units_serie = pandas.Series(modflow_recharge_from_storage_units)
+
+            modflow_recharge_from_subcatchment_serie = pandas.Series(
+                modflow_recharge_from_subcatchment
+            )
+            modflow_recharge_from_storage_units_serie = pandas.Series(
+                modflow_recharge_from_storage_units
+            )
+
+            modflow_recharge_from_subcatchment_serie = (
+                modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
+            )
+            modflow_recharge_from_subcatchment_serie.name = "subcatchment_recharge"
+            modflow_recharge_from_subcatchment_serie.index.name = "subcatchment"
+
+            modflow_recharge_from_storage_units_serie = (
+                modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
+            )
+            modflow_recharge_from_storage_units_serie.name = (
+                "infiltration_storage_unit_recharge"
+            )
+            modflow_recharge_from_storage_units_serie.index.name = (
+                "infiltration_storage_unit"
+            )
+
+            dataframe_with_recharges = pandas.merge(
+                sim._coupled_model.geo_dataframe,
+                modflow_recharge_from_subcatchment_serie,
+                on="subcatchment",
+                how="left",
+            )
+            dataframe_with_recharges = pandas.merge(
+                dataframe_with_recharges,
+                modflow_recharge_from_storage_units_serie,
+                on="infiltration_storage_unit",
+                how="left",
+            )
+
+            # Aggregate cell recharges
+            dataframe_with_recharges[
+                "iteration_recharge"
+            ] = dataframe_with_recharges.subcatchment_recharge.fillna(
+                0
+            ) + dataframe_with_recharges.infiltration_storage_unit_recharge.fillna(
+                0
+            )
 
             modflow_recharge_from_subcatchment_serie = modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
             modflow_recharge_from_subcatchment_serie.name = "subcatchment"
