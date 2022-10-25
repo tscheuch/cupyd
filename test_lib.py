@@ -12,6 +12,7 @@ from pyswmm import Links, Nodes, Simulation, Subcatchments
 
 from georef import CoupledModel
 from simulation.simulation import CoupledSimulation
+import pandas
 
 MODFLOW_WORKSPACE = Path(__file__).resolve().parent
 print(MODFLOW_WORKSPACE)
@@ -64,6 +65,9 @@ with CoupledSimulation(
     storage_units_cumulative_infiltration = {
         storage_unit.nodeid: 0 for storage_unit in storage_units
     }
+    sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(lambda row: row.geometry.area, axis=1)
+    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum()["area"]
+    storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby("infiltration_storage_unit").sum()["area"]
     for step in sim:
         hours += 1
         # print(sim.current_time)
@@ -141,25 +145,46 @@ with CoupledSimulation(
 
             modflow_recharge_from_subcatchment = {}
             modflow_recharge_from_storage_units = {}
-            for subcatchment in subcatchments:
+            for subcatchment in Subcatchments(sim):
                 # Delta infiltration
                 modflow_recharge_from_subcatchment[subcatchment.subcatchmentid] = (
                     subcatchment.statistics["infiltration"]
-                    - modflow_recharge_from_subcatchment[subcatchment.subcatchmentid]
+                    - subcatchments_cumulative_infiltration[subcatchment.subcatchmentid]
                 )
                 subcatchments_cumulative_infiltration[
                     subcatchment.subcatchmentid
                 ] = subcatchment.statistics["infiltration"]
 
-            for storage_unit in storage_units:
+            for su in storage_units:
                 # Delta infiltration
+                # Do this to get the actual node as a `Storage`
+                storage_unit = Nodes(sim)[su.nodeid]
+                print(storage_unit)
+                print(storage_unit.storage_statistics)
+                
                 modflow_recharge_from_storage_units[storage_unit.nodeid] = (
-                    storage_unit.statistics["exfil_loss"]
-                    - modflow_recharge_from_storage_units[storage_unit.nodeid]
+                    storage_unit.storage_statistics["exfil_loss"]
+                    - storage_units_cumulative_infiltration[storage_unit.nodeid]
                 )
                 storage_units_cumulative_infiltration[
                     storage_unit.nodeid
-                ] = storage_unit.statistics["exfil_loss"]
+                ] = storage_unit.storage_statistics["exfil_loss"]
+            
+            modflow_recharge_from_subcatchment_serie = pandas.Series(modflow_recharge_from_subcatchment)
+            modflow_recharge_from_storage_units_serie = pandas.Series(modflow_recharge_from_storage_units)
+
+            modflow_recharge_from_subcatchment_serie = modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
+            modflow_recharge_from_subcatchment_serie.name = "subcatchment"
+            modflow_recharge_from_storage_units_serie = modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
+            modflow_recharge_from_storage_units_serie.name = "infiltration_storage_unit"
+            print(modflow_recharge_from_subcatchment_serie)
+            print(modflow_recharge_from_storage_units_serie)
+
+            print("FINN")
+            print(sim._coupled_model.geo_dataframe)
+            print(pandas.merge(sim._coupled_model.geo_dataframe, modflow_recharge_from_subcatchment_serie.to_frame(), on="subcatchment", how="right"))
+            print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"])
+            print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"].area)
 
 gdf_final = coupled_model.geo_dataframe
 
