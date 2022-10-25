@@ -1,4 +1,5 @@
 # from pyswmm import Simulation, Nodes, Subcatchments, Links
+from flopy.modflow import Modflow
 from pyswmm import Simulation
 
 from georef import CoupledModel
@@ -106,6 +107,15 @@ class CoupledSimulation(SmartSimulation):
         self._coupled_model = coupled_model
         self._coupled_data = coupled_data
         self.results = SimulationResults(self)
+
+    @property
+    def modflow_model(self) -> Modflow:
+        """Property to access simulation related MODFLOW model easily.
+
+        Returns:
+            CoupledSimulation related MODFLOW model.
+        """
+        return self._coupled_model.modflow_model
 
     def __next__(self):
         """Next"""
