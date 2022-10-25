@@ -222,16 +222,41 @@ with CoupledSimulation(
                 0
             )
 
-            modflow_recharge_from_subcatchment_serie = modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
-            modflow_recharge_from_subcatchment_serie.name = "subcatchment"
-            modflow_recharge_from_storage_units_serie = modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
-            modflow_recharge_from_storage_units_serie.name = "infiltration_storage_unit"
-            print(modflow_recharge_from_subcatchment_serie)
-            print(modflow_recharge_from_storage_units_serie)
+            # Create MODFLOW inputs: RCH package
 
-            print("FINN")
-            print(sim._coupled_model.geo_dataframe)
-            print(pandas.merge(sim._coupled_model.geo_dataframe, modflow_recharge_from_subcatchment_serie.to_frame(), on="subcatchment", how="right"))
+            top_layer_recharge_matrix = numpy.zeros((nrows, ncols))
+
+            for index, row in dataframe_with_recharges.iterrows():
+                cell_row = row["x"]
+                cell_col = row["y"]
+                recharge = row["iteration_recharge"] or 0
+                top_layer_recharge_matrix[cell_row - 1][cell_col - 1] = recharge
+
+            # print(top_layer_recharge_matrix)
+            # plt.imshow(top_layer_recharge_matrix)
+            # plt.colorbar()
+            # plt.show()
+
+            # TODO: MAKE IPAKCB GENERIC
+            recharge_package = flopy.modflow.ModflowRch(
+                sim.modflow_model, nrchop=3, rech=top_layer_recharge_matrix, ipakcb=53
+            )
+
+            print(
+                dataframe_with_recharges[
+                    dataframe_with_recharges.subcatchment.notnull()
+                ]
+            )
+            print(
+                dataframe_with_recharges[
+                    dataframe_with_recharges.infiltration_storage_unit.notnull()
+                ]
+            )
+            print(
+                dataframe_with_recharges[
+                    dataframe_with_recharges.iteration_recharge.notnull()
+                ]
+            )
             print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"])
             print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"].area)
 
