@@ -116,6 +116,7 @@ class CoupledModel:
                 the one that gets georeferenced with the SWMM model.
             - drn_elev (Float): Is the elevation of the drain.
             - drn_cond (Float): Is the hydraulic conductance of the interface between the aquifer and the drain.
+            - ibound (Int): It's the 1 if the cell is active; if not active, 0; if constant cells, -1.
 
         * SWMM related columns:
             NOTE: un subcatchment va a infiltrar agua en múltiples celdas
@@ -152,6 +153,8 @@ class CoupledModel:
 
         elevation = self.modflow_model.dis.top.array
 
+        ibound = self.modflow_model.bas6.ibound[top_layer_index].array
+
         # TODO: Check what if some modflow model comes without projection
         # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
         # The shape file adds the crs to the data frame
@@ -164,6 +167,7 @@ class CoupledModel:
         self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
         self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
         self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
+        self.geo_dataframe["ibound"] = np.reshape(ibound, -1)
         return self.geo_dataframe
 
     def couple_models(self):
