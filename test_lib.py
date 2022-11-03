@@ -165,7 +165,7 @@ with CoupledSimulation(
                 print("PLOTING RECHARGE ")
                 plt.show()
 
-            # Create MODFLOW inputs: RCH package
+            # Create MODFLOW inputs: RCH package (It does not take into accountancy initial recharge)
 
             top_layer_recharge_matrix = (
                 dataframe_with_recharges["iteration_recharge"]
