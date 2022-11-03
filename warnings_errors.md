@@ -5,7 +5,7 @@
 - Missing .dis file
 
 ### Warning: Missing MODFLOW files
-- Missing .drn file. Rquired for a bidirectional flux exchange.
+- Missing .drn file. Required for a bidirectional flux exchange.
 - Missing .bas file. Needed for suitable validation of the spatial integration.
 
 ### Warning: Missing SWMM files

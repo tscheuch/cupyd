@@ -2,7 +2,6 @@ import platform
 import warnings
 from pathlib import Path
 import os
-from typing import List
 import time
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -17,6 +16,7 @@ from georef import CoupledModel
 from simulation.simulation import CoupledSimulation
 
 MODFLOW_WORKSPACE = Path(__file__).resolve().parent
+MODFLOW_WORKSPACE2 = Path(__file__).resolve().parent
 print(MODFLOW_WORKSPACE)
 MODFLOW_WORKSPACE = MODFLOW_WORKSPACE / "llanquihue" / "MODFLOW"
 
@@ -27,7 +27,7 @@ if platform.system() == "Darwin":
     exe_name = "mfnwt"
 
 
-exe_name = Path.joinpath(MODFLOW_WORKSPACE, exe_name)
+exe_name = Path.joinpath(MODFLOW_WORKSPACE2, exe_name)
 print(exe_name, MODFLOW_WORKSPACE)
 
 ml = flopy.modflow.Modflow.load(
@@ -42,23 +42,6 @@ nodes_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_nodes_zones.shp"
 coupled_model = CoupledModel(
     ml, subcatchment_shp, storage_units_shp_file_path, nodes_shp_file_path
 )
-
-# print(coupled_model.geo_dataframe["drn_cond"].describe())
-# print(len(coupled_model.geo_dataframe["drn_cond"]))
-# ml.drn.plot()
-# plt.show()
-# print(ml.bas6.ibound)
-# print(ml.bas6.ibound[0].string)
-# print(ml.bas6.ibound[0].array[0])
-# print(len(ml.bas6.ibound[0].array[0]))
-# print(coupled_model.geo_dataframe["ibound"])
-# print(coupled_model.geo_dataframe["ibound"].describe(include="all"))
-# coupled_model.geo_dataframe.plot(column="ibound")
-# plt.show()
-# ml.bas6.plot()
-# plt.show()
-# raise
-
 
 t1 = time.time()
 
@@ -173,8 +156,6 @@ with CoupledSimulation(
                 conduit.linkid
             ].append(new_row, ignore_index=True)
 
-        # print(subcatchment_time_serie._elements)
-        # s_SWMM_ts[i] =s_SWMM_ts[i].append(new_row, ignore_index=True)
         if hours % 24 == 0:
             print("TIME: ", sim.current_time)
 
@@ -262,11 +243,6 @@ with CoupledSimulation(
                 recharge = row["iteration_recharge"] or 0
                 top_layer_recharge_matrix[cell_row - 1][cell_col - 1] = recharge
 
-            # print(top_layer_recharge_matrix)
-            # plt.imshow(top_layer_recharge_matrix)
-            # plt.colorbar()
-            # plt.show()
-
             # TODO: MAKE IPAKCB GENERIC
             recharge_package = flopy.modflow.ModflowRch(
                 sim.modflow_model, nrchop=3, rech=top_layer_recharge_matrix, ipakcb=53
@@ -297,24 +273,6 @@ with CoupledSimulation(
 
             bas = flopy.modflow.ModflowBas(sim.modflow_model, ibound=ibound, strt=strt) #use the head table of the last time step and bc
 
-            # print(
-            #     dataframe_with_recharges[
-            #         dataframe_with_recharges.subcatchment.notnull()
-            #     ]
-            # )
-            # print(
-            #     dataframe_with_recharges[
-            #         dataframe_with_recharges.infiltration_storage_unit.notnull()
-            #     ]
-            # )
-            # print(
-            #     dataframe_with_recharges[
-            #         dataframe_with_recharges.iteration_recharge.notnull()
-            #     ]
-            # )
-            # print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"])
-            # print(sim._coupled_model.geo_dataframe.iloc[0]["geometry"].area)
-
             # TODO: PREGUNTAR TERUCA
             # Profundidad a la que drena una columna de Modflow (Solo  nos importa la top layer)
             DRN_burn_depth=0.0
@@ -328,7 +286,6 @@ with CoupledSimulation(
             DRN_M = 1
             DRN_K = 0.05 #m/dia      
 
-            DRN_C=DRN_K*DRN_L*DRN_W/DRN_M
 
             top = sim.modflow_model.dis.top.array
             DTWT = (top - DRN_burn_depth) - heads[0]  
@@ -348,11 +305,6 @@ with CoupledSimulation(
             # TODO: ASK TERE WHAT `DRN` IS
             for i in range(len(dataframe_with_recharges)):
                 dataframe_with_recharges["DRN_rate"][i]=(delta_H[i])*dataframe_with_recharges["drn_cond"].fillna(0)[i]
-                # if dataframe_with_recharges["DRN"][i]==1:
-                    # dataframe_with_recharges["DRN_rate"][i]=(delta_H[i])*DRN_C
-                    # print(DRN_C, dataframe_with_recharges["drn_cond"][i])
-                # if ml.bas6.ibound[0].array[i]==-1:
-                # if dataframe_with_recharges["ibound"][i]==-1:
                 if dataframe_with_recharges["ibound"][i] == -1:
                     dataframe_with_recharges["DRN_rate"][i]=0
             
@@ -370,44 +322,11 @@ with CoupledSimulation(
                 print("PLOTING DRN RATE ")
                 dataframe_with_recharges.plot(column="DRN_rate")
                 plt.show()
-            # node_inflow_list = []
-            # print(node_inflow.index)
-            # storage_units = [node for node in Nodes(sim) if node.is_storage()]
-            # junctions = [node for node in Nodes(sim) if node.is_junction()]
+
             for node in Nodes(sim):
                 inflow = node_inflow[node.nodeid]/86400. if node.nodeid in node_inflow.index else 0  # m3/s
                 node.generated_inflow(inflow)
-                # if node.nodeid in node_inflow.index:
-                #     node_inflow_list.append(node_inflow[node.nodeid])
-                # else:
-                #     node_inflow_list.append(0.)
-    
-                    
-            #Inflow rate in Junctions
-            
-            # junction_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
-            # junction_inflow = dataframe_with_recharges.groupby("node").sum()["DRN_rate"]
-            # junction_inflow_list=[]
-            # for j in j_names_list:
-            #     if j in junction_inflow.index:
-            #         junction_inflow_list.append(junction_inflow[j])
-            #     else:
-            #         junction_inflow_list.append(0.)
-                
-            #Generated inflow SWMM WSU:
-            
-            # for i in range(len(su_list)):
-            #     rate=node_inflow_list[i]/86400. #m3/s
-            #     su_list[i].generated_inflow(rate)
-                
-                
-            #Generated inflow SWMM Junctions:
-            
-            # for i in range(len(j_list)):
-            #     rate=junction_inflow_list[i]/86400 #m3/s
-            #     j_list[i].generated_inflow(rate)
-                
-            #Save MODFLOW cells information
+
     routing_stats=system_routing.routing_stats
     runoff_stats=system_routing.runoff_stats
                     
