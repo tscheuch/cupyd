@@ -167,13 +167,12 @@ with CoupledSimulation(
 
             # Create MODFLOW inputs: RCH package
 
-            top_layer_recharge_matrix = numpy.zeros((nrows, ncols))
-
-            for index, row in dataframe_with_recharges.iterrows():
-                cell_row = row["x"]
-                cell_col = row["y"]
-                recharge = row["iteration_recharge"] or 0
-                top_layer_recharge_matrix[cell_row - 1][cell_col - 1] = recharge
+            top_layer_recharge_matrix = (
+                dataframe_with_recharges["iteration_recharge"]
+                .fillna(0)
+                .to_numpy()
+                .reshape(nrows, ncols)
+            )
 
             # TODO: MAKE IPAKCB GENERIC
             recharge_package = flopy.modflow.ModflowRch(
