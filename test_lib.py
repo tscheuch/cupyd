@@ -196,10 +196,12 @@ with CoupledSimulation(
             # Strt next loop
             strt = heads[0]
 
-            ibound = numpy.ones((1, nrows, ncols))
-
-            for _, cell in dataframe_with_recharges.iterrows():
-                ibound[:, cell["x"] - 1, cell["y"] - 1] = cell["ibound"]
+            ibound = (
+                dataframe_with_recharges["ibound"]
+                .fillna(0)
+                .to_numpy()
+                .reshape(1, nrows, ncols)
+            )
 
             bas = flopy.modflow.ModflowBas(
                 sim.modflow_model, ibound=ibound, strt=strt
