@@ -160,7 +160,7 @@ with CoupledSimulation(
             ) + dataframe_with_recharges.infiltration_storage_unit_recharge.fillna(
                 0
             )
-            if hours % 7200 == 0:
+            if hours % 720 == 0:
                 dataframe_with_recharges.plot(column="iteration_recharge")
                 print("PLOTING RECHARGE ")
                 plt.show()
@@ -236,12 +236,8 @@ with CoupledSimulation(
             dataframe_with_recharges["DRN_rate"] = 0.0
 
             # TODO: ASK TERE WHAT `DRN` IS
-            for i in range(len(dataframe_with_recharges)):
-                dataframe_with_recharges["DRN_rate"][i] = (
-                    delta_H[i]
-                ) * dataframe_with_recharges["drn_cond"].fillna(0)[i]
-                if dataframe_with_recharges["ibound"][i] == -1:
-                    dataframe_with_recharges["DRN_rate"][i] = 0
+            dataframe_with_recharges['drn_cond'].fillna(0, inplace=True)
+            dataframe_with_recharges['DRN_rate'] = dataframe_with_recharges.apply(lambda r: r['delta_H'] * r['drn_cond'] if r['ibound'] != -1 else 0.0, axis=1)
 
             # INFLOW RATES IN SU AND JUNCTIONS
 
@@ -249,7 +245,7 @@ with CoupledSimulation(
 
             # node_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
             node_inflow = dataframe_with_recharges.groupby("node").sum()["DRN_rate"]
-            if hours % 7200 == 0:
+            if hours % 720 == 0:
                 t2 = time.time()
                 print(t2 - t1)
                 t1 = time.time()
