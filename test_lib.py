@@ -236,8 +236,11 @@ with CoupledSimulation(
             dataframe_with_recharges["DRN_rate"] = 0.0
 
             # TODO: ASK TERE WHAT `DRN` IS
-            dataframe_with_recharges['drn_cond'].fillna(0, inplace=True)
-            dataframe_with_recharges['DRN_rate'] = dataframe_with_recharges.apply(lambda r: r['delta_H'] * r['drn_cond'] if r['ibound'] != -1 else 0.0, axis=1)
+            dataframe_with_recharges["drn_cond"].fillna(0, inplace=True)
+            dataframe_with_recharges["DRN_rate"] = dataframe_with_recharges.apply(
+                lambda r: r["delta_H"] * r["drn_cond"] if r["ibound"] != -1 else 0.0,
+                axis=1,
+            )
 
             # INFLOW RATES IN SU AND JUNCTIONS
 
