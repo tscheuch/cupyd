@@ -160,20 +160,19 @@ with CoupledSimulation(
             ) + dataframe_with_recharges.infiltration_storage_unit_recharge.fillna(
                 0
             )
-            if hours % 7200 == 0:
+            if hours % 720 == 0:
                 dataframe_with_recharges.plot(column="iteration_recharge")
                 print("PLOTING RECHARGE ")
                 plt.show()
 
-            # Create MODFLOW inputs: RCH package
+            # Create MODFLOW inputs: RCH package (It does not take into accountancy initial recharge)
 
-            top_layer_recharge_matrix = numpy.zeros((nrows, ncols))
-
-            for index, row in dataframe_with_recharges.iterrows():
-                cell_row = row["x"]
-                cell_col = row["y"]
-                recharge = row["iteration_recharge"] or 0
-                top_layer_recharge_matrix[cell_row - 1][cell_col - 1] = recharge
+            top_layer_recharge_matrix = (
+                dataframe_with_recharges["iteration_recharge"]
+                .fillna(0)
+                .to_numpy()
+                .reshape(nrows, ncols)
+            )
 
             # TODO: MAKE IPAKCB GENERIC
             recharge_package = flopy.modflow.ModflowRch(
@@ -197,10 +196,12 @@ with CoupledSimulation(
             # Strt next loop
             strt = heads[0]
 
-            ibound = numpy.ones((1, nrows, ncols))
-
-            for _, cell in dataframe_with_recharges.iterrows():
-                ibound[:, cell["x"] - 1, cell["y"] - 1] = cell["ibound"]
+            ibound = (
+                dataframe_with_recharges["ibound"]
+                .fillna(0)
+                .to_numpy()
+                .reshape(1, nrows, ncols)
+            )
 
             bas = flopy.modflow.ModflowBas(
                 sim.modflow_model, ibound=ibound, strt=strt
@@ -235,12 +236,12 @@ with CoupledSimulation(
             dataframe_with_recharges["DRN_rate"] = 0.0
 
             # TODO: ASK TERE WHAT `DRN` IS
-            for i in range(len(dataframe_with_recharges)):
-                dataframe_with_recharges["DRN_rate"][i] = (
-                    delta_H[i]
-                ) * dataframe_with_recharges["drn_cond"].fillna(0)[i]
-                if dataframe_with_recharges["ibound"][i] == -1:
-                    dataframe_with_recharges["DRN_rate"][i] = 0
+            dataframe_with_recharges["drn_cond"].fillna(0, inplace=True)
+            mask = dataframe_with_recharges["ibound"] != -1
+            dataframe_with_recharges.loc[mask, "DRN_rate"] = (
+                dataframe_with_recharges["delta_H"]
+                * dataframe_with_recharges["drn_cond"]
+            )
 
             # INFLOW RATES IN SU AND JUNCTIONS
 
@@ -248,7 +249,7 @@ with CoupledSimulation(
 
             # node_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
             node_inflow = dataframe_with_recharges.groupby("node").sum()["DRN_rate"]
-            if hours % 7200 == 0:
+            if hours % 720 == 0:
                 t2 = time.time()
                 print(t2 - t1)
                 t1 = time.time()
