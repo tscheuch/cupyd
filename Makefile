@@ -1,5 +1,5 @@
-POETRY_VERSION = 1.2.0b2
-PYTHON_VERSION = 3.8
+POETRY_VERSION = 1.2.2
+PYTHON_VERSION = 3.9
 
 # Managing
 # ========
