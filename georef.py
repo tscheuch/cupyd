@@ -143,13 +143,13 @@ class CoupledModel:
         """
         stress_period = 0
         top_layer_index = 0
-        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][
-            stress_period
-        ][top_layer_index]
+        drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][stress_period][
+            top_layer_index
+        ]
 
-        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][
-            stress_period
-        ][top_layer_index]
+        drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][stress_period][
+            top_layer_index
+        ]
 
         elevation = self.modflow_model.dis.top.array
 
@@ -161,9 +161,7 @@ class CoupledModel:
         self.modflow_model.modelgrid.write_shapefile("./temp_modflow.shp")
         self.geo_dataframe = gpd.read_file("./temp_modflow.shp")
         self.geo_dataframe = self.geo_dataframe.drop(columns=["node"])
-        self.geo_dataframe = self.geo_dataframe.rename(
-            columns={"row": "x", "column": "y"}
-        )
+        self.geo_dataframe = self.geo_dataframe.rename(columns={"row": "x", "column": "y"})
         self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
         self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
         self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
@@ -181,9 +179,7 @@ class CoupledModel:
 
         swmm_geodf = gpd.read_file(self.swmm_shp_file_path)
 
-        joined_data = self.geo_dataframe.sjoin(
-            swmm_geodf, how="inner", predicate="intersects"
-        )
+        joined_data = self.geo_dataframe.sjoin(swmm_geodf, how="inner", predicate="intersects")
 
         self.geo_dataframe["subcatchment"] = joined_data["S"]
 
@@ -201,9 +197,7 @@ class CoupledModel:
 
         nodes_geodf = gpd.read_file(self.nodes_shp_file_path)
 
-        joined_data = self.geo_dataframe.sjoin(
-            nodes_geodf, how="inner", predicate="intersects"
-        )
+        joined_data = self.geo_dataframe.sjoin(nodes_geodf, how="inner", predicate="intersects")
 
         self.geo_dataframe["node"] = joined_data["node"]
 

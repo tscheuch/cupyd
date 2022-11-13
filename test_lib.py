@@ -78,9 +78,9 @@ with CoupledSimulation(
     sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(
         lambda row: row.geometry.area, axis=1
     )
-    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
-        "subcatchment"
-    ).sum()["area"]
+    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum()[
+        "area"
+    ]
     storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
         "infiltration_storage_unit"
     ).sum()["area"]
@@ -132,12 +132,8 @@ with CoupledSimulation(
             modflow_recharge_from_storage_units_serie = (
                 modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
             )
-            modflow_recharge_from_storage_units_serie.name = (
-                "infiltration_storage_unit_recharge"
-            )
-            modflow_recharge_from_storage_units_serie.index.name = (
-                "infiltration_storage_unit"
-            )
+            modflow_recharge_from_storage_units_serie.name = "infiltration_storage_unit_recharge"
+            modflow_recharge_from_storage_units_serie.index.name = "infiltration_storage_unit"
 
             dataframe_with_recharges = pandas.merge(
                 sim._coupled_model.geo_dataframe,
@@ -197,10 +193,7 @@ with CoupledSimulation(
             strt = heads[0]
 
             ibound = (
-                dataframe_with_recharges["ibound"]
-                .fillna(0)
-                .to_numpy()
-                .reshape(1, nrows, ncols)
+                dataframe_with_recharges["ibound"].fillna(0).to_numpy().reshape(1, nrows, ncols)
             )
 
             bas = flopy.modflow.ModflowBas(
@@ -239,8 +232,7 @@ with CoupledSimulation(
             dataframe_with_recharges["drn_cond"].fillna(0, inplace=True)
             mask = dataframe_with_recharges["ibound"] != -1
             dataframe_with_recharges.loc[mask, "DRN_rate"] = (
-                dataframe_with_recharges["delta_H"]
-                * dataframe_with_recharges["drn_cond"]
+                dataframe_with_recharges["delta_H"] * dataframe_with_recharges["drn_cond"]
             )
 
             # INFLOW RATES IN SU AND JUNCTIONS
@@ -259,9 +251,7 @@ with CoupledSimulation(
 
             for node in Nodes(sim):
                 inflow = (
-                    node_inflow[node.nodeid] / 86400.0
-                    if node.nodeid in node_inflow.index
-                    else 0
+                    node_inflow[node.nodeid] / 86400.0 if node.nodeid in node_inflow.index else 0
                 )  # m3/s
                 node.generated_inflow(inflow)
 

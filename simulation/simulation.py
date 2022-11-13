@@ -16,9 +16,7 @@ SWMM_path = ""
 
 class SimulationResults:
     def __init__(self, simulation) -> None:
-        self.subcatchments_time_series_result = SubcatchmentsTimeSeriesResult(
-            simulation
-        )
+        self.subcatchments_time_series_result = SubcatchmentsTimeSeriesResult(simulation)
         self.storage_units_time_series_result = StorageUnitsTimeSeriesResult(simulation)
         self.junctions_time_series_result = JuntionsTimeSeriesResult(simulation)
         self.conduits_time_series_result = LinksTimeSeriesResult(simulation)

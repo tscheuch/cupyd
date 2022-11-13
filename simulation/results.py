@@ -20,9 +20,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
 
     @property
     def columns(self) -> List[str]:
-        raise NotImplementedError(
-            "SWMMObjectsTimeSerieColumns property must be defined"
-        )
+        raise NotImplementedError("SWMMObjectsTimeSerieColumns property must be defined")
 
     def build_empty_results_data_frame(self):
         return pd.DataFrame(columns=self.columns)

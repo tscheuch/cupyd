@@ -45,11 +45,12 @@ isort = "^5.10"
 # secondary = false
 
 [tool.black]
-line-length = 88
+line-length = 99
 target-version = ["py39"]
 
 [tool.isort]
 profile = "black"
+line_length = 99
 
 [build-system]
 requires = ["poetry-core"]
