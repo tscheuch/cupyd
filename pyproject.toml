@@ -20,33 +20,47 @@ repository = "https://github.com/tscheuch/cupyd"
 # <https://python-poetry.org/docs/master/dependency-specification/>
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 flopy = "^3.3"
-fiona = { version = "1.8.21", source = "localwheels" }
-gdal = { version = "3.4.3", source = "localwheels" }
-geopandas = "^0.10"
-matplotlib = "^3.5"
+geopandas = "^0.12"
 pyshp = "^2.3"
-pyswmm = "^1.2.0"
+pyswmm = "^1.2"
 rtree = "^1.0"
 
-[tool.poetry.group.dev.dependencies]
-black = "^22.8"
-isort = "^5.10"
+# The following lines are part of a somewhat successful (it's debatable) attempt
+# to make "cupyd" installable in every home -- especially those that use Windows.
+# However, for now, these lines will be ignored to ease the development of cupyd.
 
-[[tool.poetry.source]]
-name = "localwheels"
-url = "http://nebil.github.io/moepypi"
-default = false
-secondary = false
+# fiona = { version = "1.8.21", source = "localwheels" }
+# gdal = { version = "3.4.3", source = "localwheels" }
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10"
+isort = "^5.10"
+mypy = "^0.990"
+
+# [[tool.poetry.source]]
+# name = "localwheels"
+# url = "http://nebil.github.io/moepypi"
+# default = false
+# secondary = false
 
 [tool.black]
-line-length = 88
-target-version = ["py38"]
+line-length = 99
+target-version = ["py39"]
 
 [tool.isort]
 profile = "black"
+line_length = 99
+
+[[tool.mypy.overrides]]
+module = [
+    "flopy.modflow",
+    "geopandas",
+    "numpy",
+]
+ignore_missing_imports = true
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
