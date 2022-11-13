@@ -27,14 +27,18 @@ build-dev:
 
 # Linting
 # =======
+.PHONY: black
 black:
 	poetry run black --check .
 
+.PHONY: black!
 black!:
 	poetry run black .
 
+.PHONY: isort
 isort:
 	poetry run isort . --check --diff
 
+.PHONY: isort!
 isort!:
 	poetry run isort .
