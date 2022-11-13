@@ -37,6 +37,7 @@ rtree = "^1.0"
 [tool.poetry.group.dev.dependencies]
 black = "^22.10"
 isort = "^5.10"
+mypy = "^0.990"
 
 # [[tool.poetry.source]]
 # name = "localwheels"
@@ -51,6 +52,13 @@ target-version = ["py39"]
 [tool.isort]
 profile = "black"
 line_length = 99
+
+[[tool.mypy.overrides]]
+module = [
+    "geopandas",
+    "flopy.modflow",
+]
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core"]

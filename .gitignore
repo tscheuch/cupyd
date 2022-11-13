@@ -1,10 +1,13 @@
-# Ignore some development files
+# Python-related
+.env
 .venv
 __pycache__
+.mypy_cache
 dist/
 
-# Ignore some auxiliary files
+# Cupyd-related
 temp_modflow*
 
-# Ignore some... miscellanea?
+# Miscellanea
 .DS_Store
+notes.md

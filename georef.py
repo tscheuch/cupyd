@@ -1,3 +1,5 @@
+from typing import Optional
+
 import geopandas as gpd
 import numpy as np
 
@@ -12,8 +14,8 @@ class CoupledModel:
         modflow_model: Modflow,
         # pyswmm_model: Simulation,
         swmm_shp_file_path: str,
-        storage_units_shp_file_path: str = None,
-        nodes_shp_file_path: str = None,
+        storage_units_shp_file_path: Optional[str] = None,
+        nodes_shp_file_path: Optional[str] = None,
     ) -> None:
         """
         This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.

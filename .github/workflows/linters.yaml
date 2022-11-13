@@ -38,4 +38,4 @@ jobs:
       run: poetry install --only dev
 
     - name: Lint using all of our linters
-      run: make --jobs black isort
+      run: make --jobs black isort mypy

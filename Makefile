@@ -42,3 +42,7 @@ isort:
 .PHONY: isort!
 isort!:
 	poetry run isort .
+
+.PHONY: mypy
+mypy:
+	poetry run mypy georef.py
