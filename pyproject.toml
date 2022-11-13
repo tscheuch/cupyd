@@ -55,8 +55,9 @@ line_length = 99
 
 [[tool.mypy.overrides]]
 module = [
-    "geopandas",
     "flopy.modflow",
+    "geopandas",
+    "numpy",
 ]
 ignore_missing_imports = true
 
