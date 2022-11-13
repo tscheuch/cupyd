@@ -35,7 +35,7 @@ rtree = "^1.0"
 # gdal = { version = "3.4.3", source = "localwheels" }
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.8"
+black = "^22.10"
 isort = "^5.10"
 
 # [[tool.poetry.source]]

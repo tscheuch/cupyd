@@ -491,7 +491,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "62e0d69720cc9d7fa98e1680d78bdd4d67c63f97bafe944e019026fd8592db19"
+content-hash = "73c49d1957f33c7318f54064beb2513a616e46e11652126ab0e144941f125d98"
 
 [metadata.files]
 aenum = [
