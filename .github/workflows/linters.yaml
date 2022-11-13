@@ -1,4 +1,4 @@
-name: linters
+name: Linting Python code
 
 on:
   pull_request:
@@ -6,42 +6,36 @@ on:
       - ".github/workflows/linters.yaml"
       - "**.py"
       # - ".pylintrc"
-      - "pyproject.toml"
       - "poetry.lock"
+      - "pyproject.toml"
 
 jobs:
   pylinters:
-    runs-on: ubuntu-20.04
+    name: Run the linters
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v2
+    - name: Checkout the repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v1
-        id: pysetup
-        with:
-          python-version: 3.9
+    - name: Install Poetry
+      run: pipx install poetry==1.2.2
 
-      - name: Install Poetry
-        run: make poetry
+      # Python is not required to run the linters.
+      # We use this step for caching dependencies.
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      id: pysetup
+      with:
+        python-version: "3.9"
+        cache: poetry
 
-      - name: Add system path to Poetry
-        run: echo $HOME/.poetry/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      if: steps.pysetup.outputs.cache-hit == 'false'
+      run: poetry install --only dev
 
-      # We aim to build a cache with the dependencies installed by Poetry.
-      # In order to do that, we need to put them into the .venv directory.
-      # Reference: https://python-poetry.org/docs/master/configuration
-      - name: Set up Poetry cache
-        uses: actions/cache@v3
-        id: nicanor
-        with:
-          key: ${{ hashFiles('**/poetry.lock') }}-on-python-${{ steps.pysetup.outputs.python-version }}
-          path: .venv
-
-      - name: Install dependencies
-        if: steps.nicanor.outputs.cache-hit != 'true'
-        run: poetry install --only dev
-
-      - name: Lint using all of our linters
-        run: make --jobs black isort
+    - name: Lint using all of our linters
+      run: make --jobs black isort
