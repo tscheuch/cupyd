@@ -6,49 +6,80 @@
 
 ---
 
-The integration scheme is composed of 3 modules:
-* Spatial Integration of SWMM and MODFLOW elements
-* Coupled SWMM and MODFLOW Simulation: Loop for temporal and spatial data exchange
-* Post processing and Results Analysis
-## Spatial Integration of SWMM and MODFLOW elements
-### Inputs:
-- SWMM model (swmm_model.inp) **or** Simulation from PySWMM
-- SWMM subcatchments **or/and** storage units (S_polygon.shp **or/and** SU_polygon.shp) and junctions (J_points.shp) shapefiles
-- MODLFOW model **or** MODFLOW grid + DEM (only for spatial integration)
-- List of groundwater zones and junctiones association (optional) 
-### Output: 
-- gdf with MODFLOW cells associations (elev, S, SU, DRN, drn_to)
-- plots
-## Coupled SWMM and MODFLOW simulation: Loop for temporal and spatial data exchange 
-### Inputs:
-- Simulation from pySWMM
-- MODFLOW flopy model (ml)
-- reporting time steps 
-### Outputs:
-- Results Time Series
-- Sim results (PySWMM)
-- Zone Budjet (ZB) results (flopy)
-## Post processing and Results analysis
-- Continuity Analysis
-- SWMM Results 
-- MODFLOW Results
-- Integration Results
+## Integration overview
 
-# Library usage (WIP)
+The integration scheme done by **cupyd** consists of three sequential steps:
+1. A spatial integration between the [SWMM] and [MODFLOW] elements
+2. A coupled model simulation with a spatio-temporal data exchange
+3. Finally, a post processing with results analysis
+
+### 1. Spatial integration between the SWMM and MODFLOW elements
+
+#### 📥 Input
+- SWMM model (swmm_model.inp) **or** a simulation object from [PySWMM]
+- [Shapefiles](https://en.wikipedia.org/wiki/Shapefile) of
+  SWMM subcatchments **and/or** storage units (S_polygon.shp **and/or** SU_polygon.shp)
+  **and** junctions (J_points.shp)
+- MODFLOW model **or** MODFLOW grid + DEM
+  (only needed for spatial integration)
+- **Optional:** List of groundwater zones and junctions’ association
+
+#### 📤 Output
+- [GeoDataFrame](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html)
+  with MODFLOW cells’ associations (**elev**, **S**, **SU**, **DRN**, **drn_to**)
+- A few plots
+
+### 2. Coupled model simulation with a spatio-temporal data exchange
+
+#### 📥 Input
+- Simulation object from PySWMM
+- [FloPy] model
+- Time steps for reporting
+
+#### 📤 Output
+- Results from time series
+- Simulation results from PySWMM
+- [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy
+
+### 3. Post processing with results analysis
+
+- Continuity analysis
+- Results from SWMM
+- Results from MODFLOW
+- Integration results
+
+## Library usage (work in progress)
 
 For the setup and many other things, we have defined many utilities on the Makefile to facilitate your work.
 None of them are quite complex, so you are welcome to go and check them or even run the commands separately.
 
-To facilitate the instructions, we use them all around.
+1. Make sure that you have [Python](https://www.python.org) 3.9 (or higher) installed in your machine.
 
-1. Ensure that you have Python 3.8 (or higher) installed.
+```sh
+$ python --version
+```
 
-2. Make [Poetry](https://python-poetry.org/) by installing it with our custom Makefile target.
+2. Make some [Poetry](https://python-poetry.org) by installing it using our Makefile target.
+
 ```sh
 $ make poetry
 ```
 
 3. Create a [virtual environment](https://docs.python.org/3/library/venv.html) to install the project dependencies.
+
 ```sh
 $ make venv-with-dependencies
 ```
+
+### Code health
+
+In order to keep a healthy codebase, we use three different tools:
+[black](https://github.com/psf/black),
+[isort](https://github.com/PyCQA/isort) &
+[mypy](https://github.com/python/mypy).
+
+[modflow]:https://en.wikipedia.org/wiki/MODFLOW
+[flopy]:https://github.com/modflowpy/flopy
+
+[swmm]:https://en.wikipedia.org/wiki/Storm_Water_Management_Model
+[pyswmm]:https://github.com/OpenWaterAnalytics/pyswmm
