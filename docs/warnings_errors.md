@@ -1,53 +1,71 @@
-# Warnings and Errors associated to the Spatial Integration module
-## Spatial Integration Files
+## Possible input-derived exceptions while using cupyd
 
-### Error: Missing MODFLOW files
-- Missing .dis file
+This document aims to define a non-exhaustive collection of anomalies
+(i.e. errors and warnings) that could appear while using this library.
+Please note that all of these exceptions **will originate from the input**.
+Put simply, they should only appear if something is missing or ill-defined.
 
-### Warning: Missing MODFLOW files
-- Missing .drn file. Required for a bidirectional flux exchange.
-- Missing .bas file. Needed for suitable validation of the spatial integration.
+### Within the spatial integration module
 
-### Warning: Missing SWMM files
-- Missin .inp file. Needed for suitable validation of the GIS files.
+#### Related to: spatial integration files
 
-### Error: Missing GIS files
-- subcatchments_swmm_shp_file_path is missing.
+**ERROR: Missing MODFLOW files**
+- **.dis** file is missing.
 
-### Warning: Missing GIS files
-- storage_units_shp_file_path is missing (check .inp file)
-- nodes_shp_file_path is missing. Needed for a bidirectional flux exchange.
+**WARNING: Missing MODFLOW files**
+- **.drn** file is missing. Needed for a bidirectional flux exchange.
+- **.bas** file is missing. Needed for a proper validation of the spatial integration.
 
-### Warning: Wrong GIS files conceptualization
-- subcatchments_swmm.shp: None column named "subcatch". First column is taken by default.
-- storage_units.shp: None column named "stor_unit". First column is taken by default.
-- nodes.shp: The file is a point shapefile. The relationship between MODFLOW cells and SWMM nodes is built auotmatically.
-- nodes.shp: The fie is a polygon shapefile. The relationship between MODFLOW cells and SWMM nodes is not built auotmatically.
-- (if nodes.shp is polygon): None column named "node" in nodes.shp file. First column is taken by default.
+**WARNING: Missing SWMM files**
+- **.inp** file is missing. Needed for a proper validation of the GIS files.
 
-### Error: Wrong GIS files conceptualization
-- subcatchments_swmm.shp must be a polygon shapefile.
-- storage_units.shp must be a polygon shapefile.
-### Warning: Relation between GIS files and SWMM .inp file
-- subcatchments in the .inp file == subcatchments_swmm.shp["subcath"]
-- storage uniste in the .inp file== storage_units.shp [stor_unit]
-- nodes in the .inp file == nodes.shp[node]
-- subcatchments_swmm.shp["subcath"] areas == subcatchments areas in the .inp file
+**ERROR: Missing GIS files**
+- **subcatchments_swmm_shp_file_path** is missing.
 
+**WARNING: Missing GIS files**
+- **storage_units_shp_file_path** is missing. Check **.inp** file.
+- **nodes_shp_file_path** is missing. Needed for a bidirectional flux exchange.
 
-## Spatial Integration Results
-(This warnings and errors should be supported with spatial plots)
+**ERROR: Defective GIS files**
+- **subcatchments_swmm.shp** must be a polygon shapefile.
+- **storage_units.shp** must be a polygon shapefile.
 
-*Warning:
-- MODFLOW spatial domain is smaller tha SWMM spatial domain. Part of the SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated. 
-- There are SWMM subcathments linked to inactive cells. SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated. 
-- There are SWMM subcathments linked to constant head cells. SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated. 
-- There are cells with drain capacity that are not linked to any SWMM node. Continuity errors associated. 
-- The subcathments areas in subcatchments_swmm.shp == sum cell areas asociated to each subcathcment. It is recommended to use smaller cells.
+**WARNING: Defective GIS files**
+- **subcatchments_swmm.shp:** No column named "subcatch".
+  First column is used by default.
+- **storage_units.shp:** No column named "stor_unit".
+  First column is used by default.
+- **nodes.shp:** The file is a point shapefile.
+  The relationship between MODFLOW cells and SWMM nodes is built automatically.
+- **nodes.shp:** The file is a polygon shapefile.
+  The relationship between MODFLOW cells and SWMM nodes is not built automatically.
+- If **nodes.shp** is polygon: No column named "node" in **nodes.shp** file.
+  First column is used by default.
+
+**WARNING: Relation between GIS files and SWMM .inp file**
+- Subcatchments in the **.inp** file == subcatchments_swmm.shp[subcatch]
+- Storage units in the **.inp** file == storage_units.shp[stor_unit]
+- Nodes in the **.inp** file == nodes.shp[node]
+- Subcatchments areas in the **.inp** file == subcatchments_swmm.shp[subcatch] areas
+
+#### Related to: spatial integration results
+
+The following exceptions should be supported with spatial plots.
+
+- MODFLOW spatial domain is smaller than the SWMM spatial domain.
+  Part of the SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated.
+- There are SWMM subcatchments linked to inactive cells.
+  SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated.
+- There are SWMM subcatchments linked to constant head cells.
+  SWMM infiltraton will not be incorporated to MODFLOW as recharge. Continuity errors associated.
+- There are cells with drain capacity that are not linked to any SWMM node. Continuity errors associated.
+- The subcatchments areas in **subcatchments_swmm.shp** == sum cell areas associated to each subcatchment.
+  It is recommended to use smaller cells.
 - Inner cells are not associated to subcatchments.
-- There are active cells outside the SWMM domain. 
+- There are active cells outside the SWMM domain.
 
-# Warnings and Errors associated to the Simulation module
-- Consistent times steps
+### Within the simulation module
+
+- Inconsistent time steps
 - SWMM flow units must be CMS
 - Warning: SWMM simulation uses variable time steps
