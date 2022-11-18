@@ -1,8 +1,33 @@
-# Glosario de terminos
+## Glossary (in Spanglish)
 
+- **Infiltración:**
+Dícese del agua que infiltra desde las subcuencas de SWMM hacia el [acuífero].
+Para efectos de su simulación, esta desaparece del dominio de [SWMM] puesto que,
+en el contexto de esta librería,
+esta se convertirá en recarga asociada al paquete **[rch]** —de «recharge»— de [MODFLOW].
 
-- Infiltración: Agua que infiltra desde las subcuencas de SWMM, hacia el aquífero (mundo subterraneo). Esto desaparece del dominio de SWMM para efectos de su simulación, para nosotros, esto se convierte en RECARGA (asociado al paquete `.rch`) en el modelo MODFLOW.
-- Seepage: Término usado por SWMM para referirse a la infiltración que se da en las unidades de almacenamiento de SWMM (storage units)
-- Escorrentía: Exceso de agua que existe en una subcuenca por lo que fluye (escurre/drena) a un nodo superficial (storage units, junctions, dividers, outfalls)
-- Exfiltración: Agua que drena desde las aguas subterraneas hacia la superficie. Se calcula mediante el paquete `.drn` de MODFLOW y el volumen total drenado se incorpora en nodos superficiales como un flujo lateral (lateral inflow para SWMM).
-- Lateral inflow: Parámetro de los nodos (storage units, junctions, dividers, outfalls) de SWMM. Este indica una tasa de flujo que ingresa al nodo. Nosotros lo usaremos para incorporar el agua exfiltrada, EN CADA PASO DE TIEMPO.
+- **Exfiltración:**
+Dícese del agua que drena desde las aguas subterráneas hacia la superficie.
+Esta se calcula mediante el paquete **[drn]** —de «drain»— de MODFLOW.
+El volumen total drenado se incorpora en nodos superficiales como flujo lateral (cf. *lateral inflow*) para SWMM.
+
+- **Lateral inflow:**
+Dícese de un parámetro de los nodos (e.g. *storage units*, *junctions*, *dividers*, *outfalls*)
+de SWMM que indica una tasa de flujo que ingresa al nodo.
+En esta librería se utiliza para incorporar el agua exfiltrada **en cada paso de tiempo**.
+
+- **Escorrentía:**
+Dícese del exceso de agua que existe en una subcuenca que termina drenando (o escurriendo) a un nodo superficial:
+e.g. *storage units*, *junctions*, *dividers*, *outfalls*.
+
+- **Seepage:**
+Dícese de la infiltración que, en el contexto de SWMM, ocurre en las unidades de almacenamiento.
+
+[modflow]:https://en.wikipedia.org/wiki/MODFLOW
+[swmm]:https://en.wikipedia.org/wiki/Storm_Water_Management_Model
+
+[drn]:https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/drn.html
+[rch]:https://water.usgs.gov/ogw/modflow/MODFLOW-2005-Guide/rch.html
+
+[acuífero]:https://es.wikipedia.org/wiki/Agua_subterránea
+[escorrentía]:https://es.wikipedia.org/wiki/Escorrentía

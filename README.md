@@ -15,7 +15,7 @@ The integration scheme done by **cupyd** consists of three sequential steps:
 
 ### 1. Spatial integration between the SWMM and MODFLOW elements
 
-#### 📥 Input
+**Input elements**
 - SWMM model (swmm_model.inp) **or** a simulation object from [PySWMM]
 - [Shapefiles](https://en.wikipedia.org/wiki/Shapefile) of
   SWMM subcatchments **and/or** storage units (S_polygon.shp **and/or** SU_polygon.shp)
@@ -24,19 +24,19 @@ The integration scheme done by **cupyd** consists of three sequential steps:
   (only needed for spatial integration)
 - **Optional:** List of groundwater zones and junctions’ association
 
-#### 📤 Output
+**Output elements**
 - [GeoDataFrame](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html)
   with MODFLOW cells’ associations (**elev**, **S**, **SU**, **DRN**, **drn_to**)
 - A few plots
 
 ### 2. Coupled model simulation with a spatio-temporal data exchange
 
-#### 📥 Input
+**Input elements**
 - Simulation object from PySWMM
 - [FloPy] model
 - Time steps for reporting
 
-#### 📤 Output
+**Output elements**
 - Results from time series
 - Simulation results from PySWMM
 - [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy
