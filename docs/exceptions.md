@@ -1,4 +1,4 @@
-## Possible input-derived exceptions while using cupyd
+## Possible input-derived exceptions while using Cupyd
 
 This document aims to define a non-exhaustive collection of anomalies
 (i.e. errors and warnings) that could appear while using this library.

@@ -1,14 +1,14 @@
 <p align="center">
-  <img width="100" height="100" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/320/apple/325/heart-with-arrow_1f498.png" alt="cupyd">
+  <img width="100" height="100" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/320/apple/325/heart-with-arrow_1f498.png" alt="Cupyd">
 </p>
 
-<p align="center"><strong>cupyd --</strong> a romantic integration scheme between SWMM & MODFLOW</p>
+<p align="center"><strong>Cupyd --</strong> a romantic integration scheme between SWMM & MODFLOW</p>
 
 ---
 
 ## Integration overview
 
-The integration scheme done by **cupyd** consists of three sequential steps:
+The integration scheme done by **Cupyd** consists of three sequential steps:
 1. A spatial integration between the [SWMM] and [MODFLOW] elements
 2. A coupled model simulation with a spatio-temporal data exchange
 3. Finally, a post processing with results analysis
