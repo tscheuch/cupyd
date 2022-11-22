@@ -28,8 +28,8 @@ pyswmm = "^1.2"
 rtree = "^1.0"
 
 # The following lines are part of a somewhat successful (it's debatable) attempt
-# to make "cupyd" installable in every home -- especially those that use Windows.
-# However, for now, these lines will be ignored to ease the development of cupyd.
+# to make "Cupyd" installable in every home -- especially those that use Windows.
+# However, for now, these lines will be ignored to ease the development of Cupyd.
 
 # fiona = { version = "1.8.21", source = "localwheels" }
 # gdal = { version = "3.4.3", source = "localwheels" }
@@ -37,7 +37,7 @@ rtree = "^1.0"
 [tool.poetry.group.dev.dependencies]
 black = "^22.10"
 isort = "^5.10"
-mypy = "^0.990"
+mypy = "^0.991"
 
 # [[tool.poetry.source]]
 # name = "localwheels"

@@ -15,16 +15,6 @@ venv-with-dependencies:
 	poetry run pip install --upgrade pip
 	poetry install
 
-# Building
-# ========
-.PHONY: build
-build:
-	poetry install --no-dev
-
-.PHONY: build-dev
-build-dev:
-	poetry install
-
 # Linting
 # =======
 .PHONY: black
