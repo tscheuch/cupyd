@@ -11,7 +11,7 @@
 The integration scheme done by **Cupyd** consists of three sequential steps:
 1. A spatial integration between the [SWMM] and [MODFLOW] elements
 2. A coupled model simulation with a spatio-temporal data exchange
-3. Finally, a post processing with results analysis
+3. Finally, a post-processing stage with results analysis
 
 ### 1. Spatial integration between the SWMM and MODFLOW elements
 
@@ -27,7 +27,7 @@ The integration scheme done by **Cupyd** consists of three sequential steps:
 **Output elements**
 - [GeoDataFrame](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html)
   with MODFLOW cells’ associations (**elev**, **S**, **SU**, **DRN**, **drn_to**)
-- A few plots
+- A few [Matplotlib](https://matplotlib.org)-powered plots
 
 ### 2. Coupled model simulation with a spatio-temporal data exchange
 
@@ -41,7 +41,7 @@ The integration scheme done by **Cupyd** consists of three sequential steps:
 - Simulation results from PySWMM
 - [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy
 
-### 3. Post processing with results analysis
+### 3. Post-processing stage with results analysis
 
 - Continuity analysis
 - Results from SWMM
@@ -50,10 +50,11 @@ The integration scheme done by **Cupyd** consists of three sequential steps:
 
 ## Library usage (work in progress)
 
-For the setup and many other things, we have defined many utilities on the Makefile to facilitate your work.
-None of them are quite complex, so you are welcome to go and check them or even run the commands separately.
+We have defined a handful of custom Make targets in order to ease the local setup and development of Cupyd.
+They’re quite simple, so you’re welcome to check them out and understand what’s going on behind the scenes.
+Let’s use a few of them to run the example script.
 
-1. Make sure that you have [Python](https://www.python.org) 3.9 (or higher) installed in your machine.
+1. Make sure that you have [Python](https://www.python.org) **3.9** (or higher) installed in your machine.
 
 ```sh
 $ python --version
@@ -69,6 +70,12 @@ $ make poetry
 
 ```sh
 $ make venv-with-dependencies
+```
+
+4. Run the [Llanquihue](https://en.wikipedia.org/wiki/Llanquihue_Lake)-based example script.
+
+```sh
+$ poetry run python test_lib.py
 ```
 
 ### Code health
