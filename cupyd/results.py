@@ -1,6 +1,6 @@
 from typing import List
 
-import pandas as pd
+import pandas
 from pyswmm import Links, Nodes, Simulation, Subcatchments
 
 
@@ -23,7 +23,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
         raise NotImplementedError("SWMMObjectsTimeSerieColumns property must be defined")
 
     def build_empty_results_data_frame(self):
-        return pd.DataFrame(columns=self.columns)
+        return pandas.DataFrame(columns=self.columns)
 
     def add_empty_results(self, object_id):
         self._elements[object_id] = self.build_empty_results_data_frame()

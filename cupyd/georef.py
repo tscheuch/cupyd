@@ -1,7 +1,7 @@
 from typing import Optional
 
-import geopandas as gpd
-import numpy as np
+import geopandas
+import numpy
 
 # from pyswmm import Simulation
 from flopy.modflow import Modflow
@@ -161,13 +161,13 @@ class CoupledModel:
         # TODO: Dive deeper in `self.modflow_model.modelgrid.epsg`
         # The shape file adds the crs to the data frame
         self.modflow_model.modelgrid.write_shapefile("./temp_modflow.shp")
-        self.geo_dataframe = gpd.read_file("./temp_modflow.shp")
+        self.geo_dataframe = geopandas.read_file("./temp_modflow.shp")
         self.geo_dataframe = self.geo_dataframe.drop(columns=["node"])
         self.geo_dataframe = self.geo_dataframe.rename(columns={"row": "x", "column": "y"})
-        self.geo_dataframe["drn_elev"] = np.reshape(drn_elev, -1)
-        self.geo_dataframe["drn_cond"] = np.reshape(drn_cond, -1)
-        self.geo_dataframe["elevation"] = np.reshape(elevation, -1)
-        self.geo_dataframe["ibound"] = np.reshape(ibound, -1)
+        self.geo_dataframe["drn_elev"] = numpy.reshape(drn_elev, -1)
+        self.geo_dataframe["drn_cond"] = numpy.reshape(drn_cond, -1)
+        self.geo_dataframe["elevation"] = numpy.reshape(elevation, -1)
+        self.geo_dataframe["ibound"] = numpy.reshape(ibound, -1)
         return self.geo_dataframe
 
     def couple_models(self):
@@ -179,7 +179,7 @@ class CoupledModel:
 
         # SPATIAL JOIN SUBCATCHMENTS
 
-        swmm_geodf = gpd.read_file(self.swmm_shp_file_path)
+        swmm_geodf = geopandas.read_file(self.swmm_shp_file_path)
 
         joined_data = self.geo_dataframe.sjoin(swmm_geodf, how="inner", predicate="intersects")
 
@@ -187,7 +187,7 @@ class CoupledModel:
 
         # SPATIAL JOIN STORAGE UNITS
 
-        storage_unit_geodf = gpd.read_file(self.storage_units_shp_file_path)
+        storage_unit_geodf = geopandas.read_file(self.storage_units_shp_file_path)
 
         joined_data = self.geo_dataframe.sjoin(
             storage_unit_geodf, how="inner", predicate="intersects"
@@ -197,7 +197,7 @@ class CoupledModel:
 
         # SPATIAL JOIN NODES (only IF polygons)
 
-        nodes_geodf = gpd.read_file(self.nodes_shp_file_path)
+        nodes_geodf = geopandas.read_file(self.nodes_shp_file_path)
 
         joined_data = self.geo_dataframe.sjoin(nodes_geodf, how="inner", predicate="intersects")
 
