@@ -12,41 +12,37 @@ from pyswmm import Links, Nodes, Subcatchments
 from cupyd.georef import CoupledModel
 from cupyd.simulation import CoupledSimulation
 
-MODFLOW_WORKSPACE = Path(__file__).resolve().parent
-MODFLOW_WORKSPACE2 = Path(__file__).resolve().parent
-print(MODFLOW_WORKSPACE)
-MODFLOW_WORKSPACE = MODFLOW_WORKSPACE / "llanquihue" / "MODFLOW"
+# WORKSPACES
+ROOT_DIRECTORY = Path(__file__).resolve().parent
+LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
+MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
+SWMM_WORKSPACE = LLANQUIHUE / "SWMM"
+SWMMGIS_DIRECTORY = SWMM_WORKSPACE / "GIS"
 
-modelname = "LLANQUIHUE.nam"
-if platform.system() == "Windows":
-    exe_name = "mfnwt.exe"
-if platform.system() == "Darwin":
-    exe_name = "mfnwt"
+# MODFLOW
+MODFLOW_MODEL_NAME = "LLANQUIHUE.nam"
+MODFLOW_VERSION = "mfnwt"
+MODFLOW_EXECUTABLE = "mfnwt.exe" if platform.system() == "Windows" else "mfnwt"
 
-
-exe_name = Path.joinpath(MODFLOW_WORKSPACE2, exe_name)
-print(exe_name, MODFLOW_WORKSPACE)
-
-ml = flopy.modflow.Modflow.load(
-    modelname, version="mfnwt", exe_name=exe_name, model_ws=MODFLOW_WORKSPACE
+modflow_model = flopy.modflow.Modflow.load(
+    MODFLOW_MODEL_NAME,
+    version=MODFLOW_VERSION,
+    exe_name=ROOT_DIRECTORY / MODFLOW_EXECUTABLE,
+    model_ws=MODFLOW_WORKSPACE,
 )
 
-SWMM_WORKSPACE_GIS = "llanquihue/SWMM/GIS/"
-subcatchment_shp = f"{SWMM_WORKSPACE_GIS}SWMM_S.shp"
-storage_units_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_SU.shp"
-nodes_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_nodes_zones.shp"
-
-coupled_model = CoupledModel(
-    ml, subcatchment_shp, storage_units_shp_file_path, nodes_shp_file_path
-)
+# SWMM
+subcatchments = SWMMGIS_DIRECTORY / "SWMM_S.shp"
+storage_units = SWMMGIS_DIRECTORY / "SWMM_SU.shp"
+nodes = SWMMGIS_DIRECTORY / "SWMM_nodes_zones.shp"
+coupled_model = CoupledModel(modflow_model, subcatchments, storage_units, nodes)
 
 t1 = time.time()
-
 
 with CoupledSimulation(
     coupled_model=coupled_model,
     coupled_data=None,
-    inputfile="llanquihue/SWMM/Llanquihue_base.inp",
+    inputfile=str(SWMM_WORKSPACE / "Llanquihue_base.inp"),
 ) as sim:
 
     nrows = sim.modflow_model.dis.nrow
