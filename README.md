@@ -75,7 +75,7 @@ $ make venv-with-dependencies
 4. Run the [Llanquihue](https://en.wikipedia.org/wiki/Llanquihue_Lake)-based example script.
 
 ```sh
-$ poetry run python test_lib.py
+$ poetry run python llanquihue.py
 ```
 
 ### Code health
