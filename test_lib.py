@@ -1,10 +1,7 @@
 import os
 import platform
 import time
-import warnings
 from pathlib import Path
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import flopy
 import matplotlib.pyplot as plt
@@ -78,12 +75,12 @@ with CoupledSimulation(
     sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(
         lambda row: row.geometry.area, axis=1
     )
-    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum()[
-        "area"
-    ]
+    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum(
+        numeric_only=True
+    )["area"]
     storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
         "infiltration_storage_unit"
-    ).sum()["area"]
+    ).sum(numeric_only=True)["area"]
     print("STARTING SIMULATION")
     for step in sim:
         hours += 1
@@ -240,7 +237,9 @@ with CoupledSimulation(
             # Inflow rates in SU:
 
             # node_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
-            node_inflow = dataframe_with_recharges.groupby("node").sum()["DRN_rate"]
+            node_inflow = dataframe_with_recharges.groupby("node").sum(numeric_only=True)[
+                "DRN_rate"
+            ]
             if hours % 720 == 0:
                 t2 = time.time()
                 print(t2 - t1)
