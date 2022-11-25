@@ -1,4 +1,3 @@
-# from pyswmm import Simulation, Nodes, Subcatchments, Links
 from flopy.modflow import Modflow
 from pyswmm import Simulation
 
@@ -140,20 +139,3 @@ class CoupledSimulation(SmartSimulation):
 
     def _execute_coupling_logic(self):
         ...
-
-
-# with Simulation(SWMM_path) as sim:
-#     s_list=[]
-#     su_list=[]
-#     j_list=[]
-#     l_list=[]
-#     s_areas=[]
-#     for s in s_names_list: #lista de strings de los nombres de las subcuencas en .inp
-#         s_list.append(Subcatchments(sim)[s])
-#         s_areas.append(Subcatchments(sim)[s].area) #[ha]
-#     for su in su_names_list)): #lista de strings de los nombres de las unidades de almacenamiento en .inp
-#         su_list.append(Nodes(sim)[su])
-#     for j in j_names_list: #lista de strings de los nombres de los nodos (junctions, outfalls and dividers) en .inp
-#         j_list.append(Nodes(sim)[j])
-#     for l in l_names_list: #lista de strings de los nombres de los conductos (links) en .inp
-#         l_list.append(Links(sim)[l])

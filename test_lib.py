@@ -7,7 +7,7 @@ import flopy
 import matplotlib.pyplot as plt
 import numpy
 import pandas
-from pyswmm import Links, Nodes, Simulation, Subcatchments
+from pyswmm import Links, Nodes, Subcatchments
 
 from cupyd.georef import CoupledModel
 from cupyd.simulation import CoupledSimulation
@@ -43,13 +43,6 @@ coupled_model = CoupledModel(
 t1 = time.time()
 
 
-def test_before_start(self):
-    print("ON BEFORE START")
-    print(self)
-    print(self.current_time)
-    print("OUT BEFORE START")
-
-
 with CoupledSimulation(
     coupled_model=coupled_model,
     coupled_data=None,
@@ -58,7 +51,6 @@ with CoupledSimulation(
 
     nrows = sim.modflow_model.dis.nrow
     ncols = sim.modflow_model.dis.ncol
-    # sim.add_before_step(test_before_start)
     # sim.step_advance(86400) # 1 day
     sim.step_advance(3600)  # 1 hour
     hours = 0
@@ -159,7 +151,6 @@ with CoupledSimulation(
                 plt.show()
 
             # Create MODFLOW inputs: RCH package (it doesn't take into account initial recharge)
-
             top_layer_recharge_matrix = (
                 dataframe_with_recharges["iteration_recharge"]
                 .fillna(0)
@@ -173,7 +164,6 @@ with CoupledSimulation(
             )
 
             # Run MODFLOW
-
             # TODO: Improve performance by writing only necessary packages
             sim.modflow_model.write_input()
             sim.modflow_model.run_model(silent=True)
@@ -235,7 +225,6 @@ with CoupledSimulation(
             # INFLOW RATES IN SU AND JUNCTIONS
 
             # Inflow rates in SU:
-
             # node_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
             node_inflow = dataframe_with_recharges.groupby("node").sum(numeric_only=True)[
                 "DRN_rate"
@@ -256,8 +245,6 @@ with CoupledSimulation(
 
 
 gdf_final = coupled_model.geo_dataframe
-
-# gdf_final = georeference_models(ml, 'SWMM_inputs/shapes/SWMM_S.shp')
 print(gdf_final.head())
 
 gdf_final.plot(column="subcatchment", legend=True)

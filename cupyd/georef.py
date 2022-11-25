@@ -148,13 +148,10 @@ class CoupledModel:
         drn_elev = self.modflow_model.drn.stress_period_data.array["elev"][stress_period][
             top_layer_index
         ]
-
         drn_cond = self.modflow_model.drn.stress_period_data.array["cond"][stress_period][
             top_layer_index
         ]
-
         elevation = self.modflow_model.dis.top.array
-
         ibound = self.modflow_model.bas6.ibound[top_layer_index].array
 
         # TODO: Check what if some modflow model comes without projection
@@ -178,30 +175,20 @@ class CoupledModel:
         self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
 
         # SPATIAL JOIN SUBCATCHMENTS
-
         swmm_geodf = geopandas.read_file(self.swmm_shp_file_path)
-
         joined_data = self.geo_dataframe.sjoin(swmm_geodf, how="inner", predicate="intersects")
-
         self.geo_dataframe["subcatchment"] = joined_data["S"]
 
         # SPATIAL JOIN STORAGE UNITS
-
         storage_unit_geodf = geopandas.read_file(self.storage_units_shp_file_path)
-
         joined_data = self.geo_dataframe.sjoin(
             storage_unit_geodf, how="inner", predicate="intersects"
         )
-
         self.geo_dataframe["infiltration_storage_unit"] = joined_data["stor_unit"]
 
         # SPATIAL JOIN NODES (only IF polygons)
-
         nodes_geodf = geopandas.read_file(self.nodes_shp_file_path)
-
         joined_data = self.geo_dataframe.sjoin(nodes_geodf, how="inner", predicate="intersects")
-
         self.geo_dataframe["node"] = joined_data["node"]
-
         self.geo_dataframe = self.geo_dataframe.set_geometry("geometry")
         return self.geo_dataframe
