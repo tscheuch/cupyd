@@ -13,9 +13,9 @@ class CoupledModel:
         self,
         modflow_model: Modflow,
         # pyswmm_model: Simulation,
-        swmm_shp_file_path: str,
-        storage_units_shp_file_path: Optional[str] = None,
-        nodes_shp_file_path: Optional[str] = None,
+        subcatchments_shp_filepath: str,
+        storage_units_shp_filepath: Optional[str] = None,
+        nodes_shp_filepath: Optional[str] = None,
     ) -> None:
         """
         This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.
@@ -43,14 +43,14 @@ class CoupledModel:
             pyswmm_model (Simulation):
                 <TODO: @tscheuch>
 
-            subcatchments_swmm_shp_file_path (str):
+            subcatchments_shp_filepath (str):
                 The filepath to the SWMM subcatchments shapefile.
                 The SWMM subcatchments shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
                 It should be a polygon shapefile.
                 One atribute for each geometry on the shapefile must be the name of the subcatchment in SWMM.
                 By convention the name of the column should be "subcatch".
 
-            storage_units_shp_file_path (str, optional):
+            storage_units_shp_filepath (str, optional):
                 If the SWMM model has storage units with infiltration (seepage) capacity,
                 to incorporated this rate as MODFLOW recharge, a storage unit shapefile must be given.
                 The SWMM storage units shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
@@ -59,7 +59,7 @@ class CoupledModel:
                 One atribute for each geometry on the shapefile must be the name of the storage unite in SWMM.
                 By convention the name of the column should be "stor_unit".
 
-            nodes_shp_file_path (str, optional):
+            nodes_shp_filepath (str, optional):
                 It is only necesary if the spatial linkage is in both directions, that is, if the drained
                 water by the MODFLOW cells is incorporated as lateral inflow in SWMM nodes.
 
@@ -88,9 +88,9 @@ class CoupledModel:
         # self.validate_modflow_model()  # this validation should occur in the init
         # self.validate_subcatch_shp_relationship()  # this validation should occur in the init
         self.modflow_model = modflow_model
-        self.swmm_shp_file_path = swmm_shp_file_path
-        self.storage_units_shp_file_path = storage_units_shp_file_path
-        self.nodes_shp_file_path = nodes_shp_file_path
+        self.subcatchments_shp_filepath = subcatchments_shp_filepath
+        self.storage_units_shp_filepath = storage_units_shp_filepath
+        self.nodes_shp_filepath = nodes_shp_filepath
         self.couple_models()
 
     def validate_modflow_model(self):
@@ -175,19 +175,19 @@ class CoupledModel:
         self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
 
         # SPATIAL JOIN SUBCATCHMENTS
-        swmm_geodf = geopandas.read_file(self.swmm_shp_file_path)
+        swmm_geodf = geopandas.read_file(self.subcatchments_shp_filepath)
         joined_data = self.geo_dataframe.sjoin(swmm_geodf, how="inner", predicate="intersects")
         self.geo_dataframe["subcatchment"] = joined_data["S"]
 
         # SPATIAL JOIN STORAGE UNITS
-        storage_unit_geodf = geopandas.read_file(self.storage_units_shp_file_path)
+        storage_unit_geodf = geopandas.read_file(self.storage_units_shp_filepath)
         joined_data = self.geo_dataframe.sjoin(
             storage_unit_geodf, how="inner", predicate="intersects"
         )
         self.geo_dataframe["infiltration_storage_unit"] = joined_data["stor_unit"]
 
         # SPATIAL JOIN NODES (only IF polygons)
-        nodes_geodf = geopandas.read_file(self.nodes_shp_file_path)
+        nodes_geodf = geopandas.read_file(self.nodes_shp_filepath)
         joined_data = self.geo_dataframe.sjoin(nodes_geodf, how="inner", predicate="intersects")
         self.geo_dataframe["node"] = joined_data["node"]
         self.geo_dataframe = self.geo_dataframe.set_geometry("geometry")
