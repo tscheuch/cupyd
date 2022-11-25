@@ -88,11 +88,11 @@ with CoupledSimulation(
         if hours % 24 == 0:
             print("TIME: ", sim.current_time)
 
-            modflow_recharge_from_subcatchment = {}
+            modflow_recharge_from_subcatchments = {}
             modflow_recharge_from_storage_units = {}
             for subcatchment in Subcatchments(sim):
                 # Delta infiltration
-                modflow_recharge_from_subcatchment[subcatchment.subcatchmentid] = (
+                modflow_recharge_from_subcatchments[subcatchment.subcatchmentid] = (
                     subcatchment.statistics["infiltration"]
                     - subcatchments_cumulative_infiltration[subcatchment.subcatchmentid]
                 )
@@ -113,34 +113,34 @@ with CoupledSimulation(
                     storage_unit.nodeid
                 ] = storage_unit.storage_statistics["exfil_loss"]
 
-            modflow_recharge_from_subcatchment_serie = pandas.Series(
-                modflow_recharge_from_subcatchment
+            modflow_recharge_from_subcatchments_series = pandas.Series(
+                modflow_recharge_from_subcatchments
             )
-            modflow_recharge_from_storage_units_serie = pandas.Series(
+            modflow_recharge_from_storage_units_series = pandas.Series(
                 modflow_recharge_from_storage_units
             )
 
-            modflow_recharge_from_subcatchment_serie = (
-                modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
+            modflow_recharge_from_subcatchments_series = (
+                modflow_recharge_from_subcatchments_series / subcatchment_area_dataframe
             )
-            modflow_recharge_from_subcatchment_serie.name = "subcatchment_recharge"
-            modflow_recharge_from_subcatchment_serie.index.name = "subcatchment"
+            modflow_recharge_from_subcatchments_series.name = "subcatchment_recharge"
+            modflow_recharge_from_subcatchments_series.index.name = "subcatchment"
 
-            modflow_recharge_from_storage_units_serie = (
-                modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
+            modflow_recharge_from_storage_units_series = (
+                modflow_recharge_from_storage_units_series / storage_unit_area_dataframe
             )
-            modflow_recharge_from_storage_units_serie.name = "infiltration_storage_unit_recharge"
-            modflow_recharge_from_storage_units_serie.index.name = "infiltration_storage_unit"
+            modflow_recharge_from_storage_units_series.name = "infiltration_storage_unit_recharge"
+            modflow_recharge_from_storage_units_series.index.name = "infiltration_storage_unit"
 
             dataframe_with_recharges = pandas.merge(
                 sim._coupled_model.geo_dataframe,
-                modflow_recharge_from_subcatchment_serie,
+                modflow_recharge_from_subcatchments_series,
                 on="subcatchment",
                 how="left",
             )
             dataframe_with_recharges = pandas.merge(
                 dataframe_with_recharges,
-                modflow_recharge_from_storage_units_serie,
+                modflow_recharge_from_storage_units_series,
                 on="infiltration_storage_unit",
                 how="left",
             )
@@ -155,10 +155,10 @@ with CoupledSimulation(
             )
             if hours % 720 == 0:
                 dataframe_with_recharges.plot(column="iteration_recharge")
-                print("PLOTING RECHARGE ")
+                print("PLOTTING RECHARGE")
                 plt.show()
 
-            # Create MODFLOW inputs: RCH package (It does not take into accountancy initial recharge)
+            # Create MODFLOW inputs: RCH package (it doesn't take into account initial recharge)
 
             top_layer_recharge_matrix = (
                 dataframe_with_recharges["iteration_recharge"]
@@ -179,7 +179,7 @@ with CoupledSimulation(
             sim.modflow_model.run_model(silent=True)
 
             # Read MODFLOW outputs
-            # headfile, _,  _ = sim.modflow_model.load_results()
+            # headfile, _, _ = sim.modflow_model.load_results()
             fname = os.path.join(MODFLOW_WORKSPACE, "LLANQUIHUE.hds")
             headfile = flopy.utils.HeadFile(fname, model=sim.modflow_model)
             heads = headfile.get_data()
@@ -198,7 +198,7 @@ with CoupledSimulation(
             )  # use the head table of the last time step and bc
 
             # TODO: PREGUNTAR TERUCA
-            # Profundidad a la que drena una columna de Modflow (Solo  nos importa la top layer)
+            # Profundidad a la que drena una columna de Modflow (sólo nos importa la top layer)
             DRN_burn_depth = 0.0
             # Global parameters needed to calculate drain conductance (see reference MODELMUSE DRN package pane)
             W = 5000  # model size (X)
@@ -208,7 +208,7 @@ with CoupledSimulation(
             DRN_L = x_resolution
             DRN_W = y_resolution
             DRN_M = 1
-            DRN_K = 0.05  # m/dia
+            DRN_K = 0.05  # m/day
 
             top = sim.modflow_model.dis.top.array
             DTWT = (top - DRN_burn_depth) - heads[0]
@@ -244,7 +244,7 @@ with CoupledSimulation(
                 t2 = time.time()
                 print(t2 - t1)
                 t1 = time.time()
-                print("PLOTING DRN RATE ")
+                print("PLOTTING DRN RATE")
                 dataframe_with_recharges.plot(column="DRN_rate")
                 plt.show()
 

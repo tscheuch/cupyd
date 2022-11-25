@@ -19,7 +19,8 @@ class CoupledModel:
     ) -> None:
         """
         This class intends to create the linkage (spatial integration) between a groundwater MODFLOW model and a surface SWMM model.
-        It is a necessary and prelimary step for running a coupled SWMM-MODFLOW model. It allows the bidirectional and spatially distributed flux exchange between models (i.e., infiltration and exfiltration rates).
+        It is a necessary and preliminary step for running a coupled SWMM-MODFLOW model.
+        It allows the bidirectional and spatially distributed flux exchange between models, i.e. infiltration and exfiltration rates.
 
         Args:
             modflow_model (Modflow):
@@ -64,7 +65,7 @@ class CoupledModel:
 
                 If the relationship between MODFLOW cells and SWMM nodes is built auotmatically,
                 the file is a point shapefile that represents the spatial location of the SWMM nodes
-                (i.e., junctions, storage unitis, dividers or outfalls) that eventually can receive exfiltration
+                (i.e., junctions, storage units, dividers or outfalls) that eventually can receive exfiltration
                 as lateral inflow.
 
                 Alternatively, if the relationship between MODFLOW cells and SWMM nodes is not built auotmatically,
@@ -74,13 +75,13 @@ class CoupledModel:
                 The shapefile must be previously built in a GIS software (QGIS, ArcGIS or similar).
 
         STEPS:
-        1. Validation of modflow model
+        1. Validation of MODFLOW model
             1.1 Validate `drn` package with only 1 stress period.
         2. Validation subcatchment-shape relationship is one-to-one.
             i.e. each existing subcatchment must have a polygon with the same name on the shapefile
         3. Make the spatial linktegration
         3.1. Create empty geodataframe
-        3.2. Add modflow info to empty dataframe
+        3.2. Add MODFLOW info into empty dataframe
         3.3.
         """
 
@@ -109,27 +110,26 @@ class CoupledModel:
 
         All the `GeoDataFrame` columns needed for the spacial linkage are:
 
-        * MODFLOW related columns:
-
-            - x (Int): Number of the x-axis were each cell lives in, on the `Modflow` instance grid.
-            - y (Int): Number of the y-axis were each cell lives in, on the `Modflow` instance grid.
+        * MODFLOW-related columns:
+            - x (int): Number of the x-axis were each cell lives in, on the `Modflow` instance grid.
+            - y (int): Number of the y-axis were each cell lives in, on the `Modflow` instance grid.
             - geometry (Polygon): 'Polygon' representation of the cell.
-            - elevation (Float): Cell elevation of the first layer of the grid,
+            - elevation (float): Cell elevation of the first layer of the grid,
                 the one that gets georeferenced with the SWMM model.
-            - drn_elev (Float): Is the elevation of the drain.
-            - drn_cond (Float): Is the hydraulic conductance of the interface between the aquifer and the drain.
-            - ibound (Int): It's the 1 if the cell is active; if not active, 0; if constant cells, -1.
+            - drn_elev (float): The elevation of the drain.
+            - drn_cond (float): The hydraulic conductance of the interface between the aquifer and the drain.
+            - ibound (int): It's the 1 if the cell is active; if not active, 0; if constant cells, -1.
 
-        * SWMM related columns:
+        * SWMM-related columns:
             NOTE: un subcatchment va a infiltrar agua en múltiples celdas
-                una celda recibe agua infiltrada desde un sólo subcatchment
+                una celda recibe agua infiltrada desde un solo subcatchment
                 una celda podría adicionalmente recibir agua desde un storage unit
 
             Infiltration exchange:
-            - subcatchment (Str): Name of SWMM subcatchment that infiltrates to the cell.
-            - infiltration_storage_unit (Str, None): Name of the SWMM storage unit that infiltrates to the cell.
+            - subcatchment (str): Name of SWMM subcatchment that infiltrates to the cell.
+            - infiltration_storage_unit (str, None): Name of the SWMM storage unit that infiltrates to the cell.
             Exfiltration exchange:
-            - node (Str, None): Name of the node where the subcatchment exfiltrate. It can be a `junction`, a
+            - node (str, None): Name of the node where the subcatchment exfiltrates. It can be a `junction`, a
                 `storage unit`, `divider` or an `outfall`. These elements have unique names in between them, so it
                 is safe to call them just `node`.
 
@@ -173,7 +173,7 @@ class CoupledModel:
     def couple_models(self):
         self.build_geodataframe()
 
-        # Set the poligon centroids for the spatial joins
+        # Set the polygon centroids for the spatial joins
         self.geo_dataframe["centroids"] = self.geo_dataframe["geometry"].centroid
         self.geo_dataframe = self.geo_dataframe.set_geometry("centroids")
 

@@ -8,7 +8,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
 
     The possible SWMM objects are:
     - Subcatchments
-    - Storage Units
+    - Storage units
     - Junctions
     - Links
     """
@@ -18,7 +18,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
 
     @property
     def columns(self) -> list[str]:
-        raise NotImplementedError("SWMMObjectsTimeSerieColumns property must be defined")
+        raise NotImplementedError("SWMMObjectsTimeSeriesColumns property must be defined")
 
     def build_empty_results_data_frame(self):
         return pandas.DataFrame(columns=self.columns)
@@ -51,9 +51,9 @@ class SubcatchmentsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__()
         self._simulation = simulation
-        self.add_simulation_subtachments_empty_results(simulation)
+        self.add_simulation_subcatchments_empty_results(simulation)
 
-    def add_simulation_subtachments_empty_results(self, simulation: Simulation):
+    def add_simulation_subcatchments_empty_results(self, simulation: Simulation):
         for subcatchment in Subcatchments(simulation):
             self.add_empty_results(subcatchment.subcatchmentid)
 
@@ -99,7 +99,7 @@ class StorageUnitsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
         ]
 
 
-class JuntionsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
+class JunctionsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__()
         self._simulation = simulation

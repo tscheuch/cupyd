@@ -5,7 +5,7 @@ from pyswmm import Simulation
 from cupyd.georef import CoupledModel
 
 from .results import (
-    JuntionsTimeSeriesResult,
+    JunctionsTimeSeriesResult,
     LinksTimeSeriesResult,
     StorageUnitsTimeSeriesResult,
     SubcatchmentsTimeSeriesResult,
@@ -18,12 +18,12 @@ class SimulationResults:
     def __init__(self, simulation) -> None:
         self.subcatchments_time_series_result = SubcatchmentsTimeSeriesResult(simulation)
         self.storage_units_time_series_result = StorageUnitsTimeSeriesResult(simulation)
-        self.junctions_time_series_result = JuntionsTimeSeriesResult(simulation)
+        self.junctions_time_series_result = JunctionsTimeSeriesResult(simulation)
         self.conduits_time_series_result = LinksTimeSeriesResult(simulation)
 
 
 def get_modflow_step_data():
-    """From every modflow step we need to retrieve:
+    """From every MODFLOW step we need to retrieve:
     - Calculate each cell drained water, and give it back to its related Junction as lateral inflow.
         It is important to notice that this lateral inflow must be an aggregate of every Junction related cell on MODFLOW.
     - Store each cell water table depth (altura de agua) in order to initialize the MODFLOW model simulation with this as initial condition for the next step.
@@ -32,29 +32,29 @@ def get_modflow_step_data():
 
 
 def get_pyswmm_step_data():
-    """From every pyswmm step we want to retreive:
+    """From every PySWMM step we want to retreive:
     - Calculate the infiltration volume of the step per subcatchment (t+1) - t
     - Calculate the infiltration volume of the step per storage unit (t+1) - t
 
-    Incorporate both of this elements as recharge for the MODFLOW model by adding it to the .rch package (before initializing the next step MODFLOW model)
+    Incorporate both of these elements as recharge for the MODFLOW model by adding it to the .rch package (before initializing the next step MODFLOW model)
     """
     ...
 
 
 def make_something_with_the_data():
     """
-    1. Calculate pyswmm data
+    1. Calculate PySWMM data
     2. Add infiltration as
     """
     ...
 
 
 class SmartSimulation(Simulation):
-    """An extension of pyswmm simulation to allow passing callbacks to be executed in a fixed period
+    """An extension of PySWMM simulation to allow passing callbacks to be executed in a fixed period
     of time.
 
     Args:
-        Simulation (_type_): PYSMM simulation class
+        Simulation (_type_): PySWMM simulation class
     """
 
     def __init__(self, **kwargs):
