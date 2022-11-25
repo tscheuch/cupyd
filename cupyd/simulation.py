@@ -2,7 +2,7 @@
 from flopy.modflow import Modflow
 from pyswmm import Simulation
 
-from georef import CoupledModel
+from cupyd.georef import CoupledModel
 
 from .results import (
     JuntionsTimeSeriesResult,

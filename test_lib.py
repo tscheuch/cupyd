@@ -12,8 +12,8 @@ import numpy
 import pandas
 from pyswmm import Links, Nodes, Simulation, Subcatchments
 
-from georef import CoupledModel
-from simulation.simulation import CoupledSimulation
+from cupyd.georef import CoupledModel
+from cupyd.simulation import CoupledSimulation
 
 MODFLOW_WORKSPACE = Path(__file__).resolve().parent
 MODFLOW_WORKSPACE2 = Path(__file__).resolve().parent
