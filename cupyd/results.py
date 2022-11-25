@@ -1,5 +1,3 @@
-from typing import List
-
 import pandas
 from pyswmm import Links, Nodes, Simulation, Subcatchments
 
@@ -19,7 +17,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
         self._elements = {}
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         raise NotImplementedError("SWMMObjectsTimeSerieColumns property must be defined")
 
     def build_empty_results_data_frame(self):
