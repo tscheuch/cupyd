@@ -35,4 +35,4 @@ isort!:
 
 .PHONY: mypy
 mypy:
-	poetry run mypy georef.py
+	poetry run mypy cupyd/georef.py

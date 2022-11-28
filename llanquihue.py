@@ -1,67 +1,52 @@
 import os
 import platform
 import time
-import warnings
 from pathlib import Path
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import flopy
 import matplotlib.pyplot as plt
 import numpy
 import pandas
-from pyswmm import Links, Nodes, Simulation, Subcatchments
+from pyswmm import Links, Nodes, Subcatchments
 
-from georef import CoupledModel
-from simulation.simulation import CoupledSimulation
+from cupyd.georef import CoupledModel
+from cupyd.simulation import CoupledSimulation
 
-MODFLOW_WORKSPACE = Path(__file__).resolve().parent
-MODFLOW_WORKSPACE2 = Path(__file__).resolve().parent
-print(MODFLOW_WORKSPACE)
-MODFLOW_WORKSPACE = MODFLOW_WORKSPACE / "llanquihue" / "MODFLOW"
+# WORKSPACES
+ROOT_DIRECTORY = Path(__file__).resolve().parent
+LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
+MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
+SWMM_WORKSPACE = LLANQUIHUE / "SWMM"
+SWMMGIS_DIRECTORY = SWMM_WORKSPACE / "GIS"
 
-modelname = "LLANQUIHUE.nam"
-if platform.system() == "Windows":
-    exe_name = "mfnwt.exe"
-if platform.system() == "Darwin":
-    exe_name = "mfnwt"
+# MODFLOW
+MODFLOW_MODEL_NAME = "LLANQUIHUE.nam"
+MODFLOW_VERSION = "mfnwt"
+MODFLOW_EXECUTABLE = "mfnwt.exe" if platform.system() == "Windows" else "mfnwt"
 
-
-exe_name = Path.joinpath(MODFLOW_WORKSPACE2, exe_name)
-print(exe_name, MODFLOW_WORKSPACE)
-
-ml = flopy.modflow.Modflow.load(
-    modelname, version="mfnwt", exe_name=exe_name, model_ws=MODFLOW_WORKSPACE
+modflow_model = flopy.modflow.Modflow.load(
+    MODFLOW_MODEL_NAME,
+    version=MODFLOW_VERSION,
+    exe_name=ROOT_DIRECTORY / MODFLOW_EXECUTABLE,
+    model_ws=MODFLOW_WORKSPACE,
 )
 
-SWMM_WORKSPACE_GIS = "llanquihue/SWMM/GIS/"
-subcatchment_shp = f"{SWMM_WORKSPACE_GIS}SWMM_S.shp"
-storage_units_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_SU.shp"
-nodes_shp_file_path = f"{SWMM_WORKSPACE_GIS}SWMM_nodes_zones.shp"
-
-coupled_model = CoupledModel(
-    ml, subcatchment_shp, storage_units_shp_file_path, nodes_shp_file_path
-)
+# SWMM
+subcatchments = SWMMGIS_DIRECTORY / "SWMM_S.shp"
+storage_units = SWMMGIS_DIRECTORY / "SWMM_SU.shp"
+nodes = SWMMGIS_DIRECTORY / "SWMM_nodes_zones.shp"
+coupled_model = CoupledModel(modflow_model, subcatchments, storage_units, nodes)
 
 t1 = time.time()
-
-
-def test_before_start(self):
-    print("ON BEFORE START")
-    print(self)
-    print(self.current_time)
-    print("OUT BEFORE START")
-
 
 with CoupledSimulation(
     coupled_model=coupled_model,
     coupled_data=None,
-    inputfile="llanquihue/SWMM/Llanquihue_base.inp",
+    inputfile=str(SWMM_WORKSPACE / "Llanquihue_base.inp"),
 ) as sim:
 
     nrows = sim.modflow_model.dis.nrow
     ncols = sim.modflow_model.dis.ncol
-    # sim.add_before_step(test_before_start)
     # sim.step_advance(86400) # 1 day
     sim.step_advance(3600)  # 1 hour
     hours = 0
@@ -78,12 +63,12 @@ with CoupledSimulation(
     sim._coupled_model.geo_dataframe["area"] = sim._coupled_model.geo_dataframe.apply(
         lambda row: row.geometry.area, axis=1
     )
-    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum()[
-        "area"
-    ]
+    subcatchment_area_dataframe = sim._coupled_model.geo_dataframe.groupby("subcatchment").sum(
+        numeric_only=True
+    )["area"]
     storage_unit_area_dataframe = sim._coupled_model.geo_dataframe.groupby(
         "infiltration_storage_unit"
-    ).sum()["area"]
+    ).sum(numeric_only=True)["area"]
     print("STARTING SIMULATION")
     for step in sim:
         hours += 1
@@ -91,11 +76,11 @@ with CoupledSimulation(
         if hours % 24 == 0:
             print("TIME: ", sim.current_time)
 
-            modflow_recharge_from_subcatchment = {}
+            modflow_recharge_from_subcatchments = {}
             modflow_recharge_from_storage_units = {}
             for subcatchment in Subcatchments(sim):
                 # Delta infiltration
-                modflow_recharge_from_subcatchment[subcatchment.subcatchmentid] = (
+                modflow_recharge_from_subcatchments[subcatchment.subcatchmentid] = (
                     subcatchment.statistics["infiltration"]
                     - subcatchments_cumulative_infiltration[subcatchment.subcatchmentid]
                 )
@@ -116,34 +101,34 @@ with CoupledSimulation(
                     storage_unit.nodeid
                 ] = storage_unit.storage_statistics["exfil_loss"]
 
-            modflow_recharge_from_subcatchment_serie = pandas.Series(
-                modflow_recharge_from_subcatchment
+            modflow_recharge_from_subcatchments_series = pandas.Series(
+                modflow_recharge_from_subcatchments
             )
-            modflow_recharge_from_storage_units_serie = pandas.Series(
+            modflow_recharge_from_storage_units_series = pandas.Series(
                 modflow_recharge_from_storage_units
             )
 
-            modflow_recharge_from_subcatchment_serie = (
-                modflow_recharge_from_subcatchment_serie / subcatchment_area_dataframe
+            modflow_recharge_from_subcatchments_series = (
+                modflow_recharge_from_subcatchments_series / subcatchment_area_dataframe
             )
-            modflow_recharge_from_subcatchment_serie.name = "subcatchment_recharge"
-            modflow_recharge_from_subcatchment_serie.index.name = "subcatchment"
+            modflow_recharge_from_subcatchments_series.name = "subcatchment_recharge"
+            modflow_recharge_from_subcatchments_series.index.name = "subcatchment"
 
-            modflow_recharge_from_storage_units_serie = (
-                modflow_recharge_from_storage_units_serie / storage_unit_area_dataframe
+            modflow_recharge_from_storage_units_series = (
+                modflow_recharge_from_storage_units_series / storage_unit_area_dataframe
             )
-            modflow_recharge_from_storage_units_serie.name = "infiltration_storage_unit_recharge"
-            modflow_recharge_from_storage_units_serie.index.name = "infiltration_storage_unit"
+            modflow_recharge_from_storage_units_series.name = "infiltration_storage_unit_recharge"
+            modflow_recharge_from_storage_units_series.index.name = "infiltration_storage_unit"
 
             dataframe_with_recharges = pandas.merge(
                 sim._coupled_model.geo_dataframe,
-                modflow_recharge_from_subcatchment_serie,
+                modflow_recharge_from_subcatchments_series,
                 on="subcatchment",
                 how="left",
             )
             dataframe_with_recharges = pandas.merge(
                 dataframe_with_recharges,
-                modflow_recharge_from_storage_units_serie,
+                modflow_recharge_from_storage_units_series,
                 on="infiltration_storage_unit",
                 how="left",
             )
@@ -158,11 +143,10 @@ with CoupledSimulation(
             )
             if hours % 720 == 0:
                 dataframe_with_recharges.plot(column="iteration_recharge")
-                print("PLOTING RECHARGE ")
+                print("PLOTTING RECHARGE")
                 plt.show()
 
-            # Create MODFLOW inputs: RCH package (It does not take into accountancy initial recharge)
-
+            # Create MODFLOW inputs: RCH package (it doesn't take into account initial recharge)
             top_layer_recharge_matrix = (
                 dataframe_with_recharges["iteration_recharge"]
                 .fillna(0)
@@ -176,13 +160,12 @@ with CoupledSimulation(
             )
 
             # Run MODFLOW
-
             # TODO: Improve performance by writing only necessary packages
             sim.modflow_model.write_input()
             sim.modflow_model.run_model(silent=True)
 
             # Read MODFLOW outputs
-            # headfile, _,  _ = sim.modflow_model.load_results()
+            # headfile, _, _ = sim.modflow_model.load_results()
             fname = os.path.join(MODFLOW_WORKSPACE, "LLANQUIHUE.hds")
             headfile = flopy.utils.HeadFile(fname, model=sim.modflow_model)
             heads = headfile.get_data()
@@ -201,7 +184,7 @@ with CoupledSimulation(
             )  # use the head table of the last time step and bc
 
             # TODO: PREGUNTAR TERUCA
-            # Profundidad a la que drena una columna de Modflow (Solo  nos importa la top layer)
+            # Profundidad a la que drena una columna de Modflow (sólo nos importa la top layer)
             DRN_burn_depth = 0.0
             # Global parameters needed to calculate drain conductance (see reference MODELMUSE DRN package pane)
             W = 5000  # model size (X)
@@ -211,7 +194,7 @@ with CoupledSimulation(
             DRN_L = x_resolution
             DRN_W = y_resolution
             DRN_M = 1
-            DRN_K = 0.05  # m/dia
+            DRN_K = 0.05  # m/day
 
             top = sim.modflow_model.dis.top.array
             DTWT = (top - DRN_burn_depth) - heads[0]
@@ -238,14 +221,15 @@ with CoupledSimulation(
             # INFLOW RATES IN SU AND JUNCTIONS
 
             # Inflow rates in SU:
-
             # node_inflow=dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
-            node_inflow = dataframe_with_recharges.groupby("node").sum()["DRN_rate"]
+            node_inflow = dataframe_with_recharges.groupby("node").sum(numeric_only=True)[
+                "DRN_rate"
+            ]
             if hours % 720 == 0:
                 t2 = time.time()
                 print(t2 - t1)
                 t1 = time.time()
-                print("PLOTING DRN RATE ")
+                print("PLOTTING DRN RATE")
                 dataframe_with_recharges.plot(column="DRN_rate")
                 plt.show()
 
@@ -257,8 +241,6 @@ with CoupledSimulation(
 
 
 gdf_final = coupled_model.geo_dataframe
-
-# gdf_final = georeference_models(ml, 'SWMM_inputs/shapes/SWMM_S.shp')
 print(gdf_final.head())
 
 gdf_final.plot(column="subcatchment", legend=True)

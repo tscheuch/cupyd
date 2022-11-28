@@ -1,6 +1,4 @@
-from typing import List
-
-import pandas as pd
+import pandas
 from pyswmm import Links, Nodes, Simulation, Subcatchments
 
 
@@ -10,7 +8,7 @@ class AbstractSWMMObjectsTimeSeriesResult:
 
     The possible SWMM objects are:
     - Subcatchments
-    - Storage Units
+    - Storage units
     - Junctions
     - Links
     """
@@ -19,11 +17,11 @@ class AbstractSWMMObjectsTimeSeriesResult:
         self._elements = {}
 
     @property
-    def columns(self) -> List[str]:
-        raise NotImplementedError("SWMMObjectsTimeSerieColumns property must be defined")
+    def columns(self) -> list[str]:
+        raise NotImplementedError("SWMMObjectsTimeSeriesColumns property must be defined")
 
     def build_empty_results_data_frame(self):
-        return pd.DataFrame(columns=self.columns)
+        return pandas.DataFrame(columns=self.columns)
 
     def add_empty_results(self, object_id):
         self._elements[object_id] = self.build_empty_results_data_frame()
@@ -53,9 +51,9 @@ class SubcatchmentsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__()
         self._simulation = simulation
-        self.add_simulation_subtachments_empty_results(simulation)
+        self.add_simulation_subcatchments_empty_results(simulation)
 
-    def add_simulation_subtachments_empty_results(self, simulation: Simulation):
+    def add_simulation_subcatchments_empty_results(self, simulation: Simulation):
         for subcatchment in Subcatchments(simulation):
             self.add_empty_results(subcatchment.subcatchmentid)
 
@@ -101,7 +99,7 @@ class StorageUnitsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
         ]
 
 
-class JuntionsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
+class JunctionsTimeSeriesResult(AbstractSWMMObjectsTimeSeriesResult):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__()
         self._simulation = simulation

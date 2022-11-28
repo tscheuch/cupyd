@@ -20,11 +20,11 @@ Put simply, they should only appear if something is missing or ill-defined.
 - **.inp** file is missing. Needed for a proper validation of the GIS files.
 
 **ERROR: Missing GIS files**
-- **subcatchments_swmm_shp_file_path** is missing.
+- **subcatchments_swmm_shp_filepath** is missing.
 
 **WARNING: Missing GIS files**
-- **storage_units_shp_file_path** is missing. Check **.inp** file.
-- **nodes_shp_file_path** is missing. Needed for a bidirectional flux exchange.
+- **storage_units_shp_filepath** is missing. Check **.inp** file.
+- **nodes_shp_filepath** is missing. Needed for a bidirectional flux exchange.
 
 **ERROR: Defective GIS files**
 - **subcatchments_swmm.shp** must be a polygon shapefile.
