@@ -39,6 +39,21 @@ class CoupledSimulation(Simulation):
         super().__init__(**kwargs)
         self._coupled_model = coupled_model
         self._coupled_data = coupled_data
+        self.subcatchments_cumulative_infiltration = {}
+        self.storage_units_cumulative_infiltration = {}
+        self._coupled_model.geo_dataframe["area"] = self._coupled_model.geo_dataframe.apply(
+            lambda row: row.geometry.area, axis=1
+        )
+        self.subcatchment_area_dataframe = self._coupled_model.geo_dataframe.groupby(
+            "subcatchment"
+        ).sum(numeric_only=True)["area"]
+        self.storage_unit_area_dataframe = self._coupled_model.geo_dataframe.groupby(
+            "infiltration_storage_unit"
+        ).sum(numeric_only=True)["area"]
+        self.nrows = self.modflow_model.dis.nrow
+        self.ncols = self.modflow_model.dis.ncol
+        # TODO: Delete this. Element to facilitate plotting
+        self.dataframe_with_recharges = None
 
     @property
     def modflow_model(self) -> Modflow:
