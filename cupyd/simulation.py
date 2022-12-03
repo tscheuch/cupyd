@@ -4,22 +4,7 @@ from pyswmm.swmm5 import PYSWMMException
 
 from cupyd.georef import CoupledModel
 
-from .results import (
-    JunctionsTimeSeriesResult,
-    LinksTimeSeriesResult,
-    StorageUnitsTimeSeriesResult,
-    SubcatchmentsTimeSeriesResult,
-)
-
 SWMM_path = ""
-
-
-class SimulationResults:
-    def __init__(self, simulation) -> None:
-        self.subcatchments_time_series_result = SubcatchmentsTimeSeriesResult(simulation)
-        self.storage_units_time_series_result = StorageUnitsTimeSeriesResult(simulation)
-        self.junctions_time_series_result = JunctionsTimeSeriesResult(simulation)
-        self.conduits_time_series_result = LinksTimeSeriesResult(simulation)
 
 
 def get_modflow_step_data():
@@ -54,7 +39,6 @@ class CoupledSimulation(Simulation):
         super().__init__(**kwargs)
         self._coupled_model = coupled_model
         self._coupled_data = coupled_data
-        self.results = SimulationResults(self)
 
     @property
     def modflow_model(self) -> Modflow:
