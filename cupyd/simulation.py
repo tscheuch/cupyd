@@ -49,57 +49,7 @@ def make_something_with_the_data():
     ...
 
 
-class SmartSimulation(Simulation):
-    """An extension of PySWMM simulation to allow passing callbacks to be executed in a fixed period
-    of time.
-
-    Args:
-        Simulation (_type_): PySWMM simulation class
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._callbacks["add_on_x_seconds_before_step"] = None
-        self._callbacks["on_x_seconds_after_step"] = None
-
-    def on_x_seconds_before_step(self):
-        """Get On Seconds X Before Step Callback.
-
-        :return: Callbacks
-        """
-        return self._callbacks["on_x_seconds_before_step"]
-
-    def add_on_x_seconds_before_step(self, callback, seconds: int):
-        """
-        Add callback function/method/object to execute before
-        a simulation step, IF AND ONLY IF, that step simulation time is a multiple
-        of the parameter X. Needs to be callable.
-
-        :param func callback: Callable Object
-        """
-        if self._is_callback(callback):
-            self._callbacks["on_x_seconds_before_step"] = callback
-
-    def on_x_seconds_after_step(self):
-        """Get On Seconds X After Step Callback.
-
-        :return: Callbacks
-        """
-        return self._callbacks["on_x_seconds_after_step"]
-
-    def add_on_x_seconds_after_step(self, callback, seconds: int):
-        """
-        Add callback function/method/object to execute before
-        a simulation step, IF AND ONLY IF, that step simulation time is a multiple
-        of the parameter X. Needs to be callable.
-
-        :param func callback: Callable Object
-        """
-        if self._is_callback(callback):
-            self._callbacks["on_x_seconds_after_step"] = callback
-
-
-class CoupledSimulation(SmartSimulation):
+class CoupledSimulation(Simulation):
     def __init__(self, coupled_model: CoupledModel, coupled_data=None, **kwargs):
         super().__init__(**kwargs)
         self._coupled_model = coupled_model
