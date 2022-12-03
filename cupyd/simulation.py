@@ -64,6 +64,14 @@ class CoupledSimulation(Simulation):
         """
         return self._coupled_model.modflow_model
 
+    @property
+    def _cupled_subcatchments(self):
+        return [subcatchment for subcatchment in Subcatchments(self)]
+
+    @property
+    def _cupled_storage_units(self):
+        return [node for node in Nodes(self) if node.is_storage()]
+
     def _execute_callback(self, callback):
         """Runs the callback.
 
@@ -71,7 +79,7 @@ class CoupledSimulation(Simulation):
         in order to pass the simulation object to the callbacks. We do this so that
         we can execute the coupling logic as a "callback"; also because we believe
         it is useful to have it on the callbacks.
-        
+
         """
         if callback:
             try:
@@ -79,6 +87,18 @@ class CoupledSimulation(Simulation):
             except PYSWMMException:
                 error_msg = "Callback Failed"
                 raise PYSWMMException((error_msg))
+
+    def before_step(self):
+        """Get Before Step Callback.
+
+        :return: Callbacks
+        """
+        self.set_subcatchments_cumulative_infiltration()
+        self.set_storage_unites_cumulative_exfil_loss()
+        # TODO: This step advance implementation con be changed by the library user and that would affect the result.
+        # Also, the step advance might not always be the same!
+        self.step_advance(3600 * 24)  # 1 day
+        return self._callbacks["before_step"]
 
     def after_step(self):
         """Get After Step Callback.
@@ -91,7 +111,20 @@ class CoupledSimulation(Simulation):
 
         :return: Callbacks
         """
-        return self._execute_coupling_logic(self)
+        return self._callbacks["after_step"]
+
+    def set_subcatchments_cumulative_infiltration(self):
+        for subcatchment in self._cupled_subcatchments:
+            self.subcatchments_cumulative_infiltration[
+                subcatchment.subcatchmentid
+            ] = subcatchment.statistics["infiltration"]
+
+    def set_storage_unites_cumulative_exfil_loss(self):
+        for storage_unit in self._cupled_storage_units:
+            self.storage_units_cumulative_infiltration[
+                storage_unit.nodeid
+            ] = storage_unit.storage_statistics["exfil_loss"]
+
 
     def _execute_coupling_logic(self):
 
