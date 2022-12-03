@@ -1,5 +1,6 @@
 from flopy.modflow import Modflow
 from pyswmm import Simulation
+from pyswmm.swmm5 import PYSWMMException
 
 from cupyd.georef import CoupledModel
 
@@ -114,28 +115,14 @@ class CoupledSimulation(SmartSimulation):
         """
         return self._coupled_model.modflow_model
 
-    def __next__(self):
-        """Next"""
-        # Start Simulation
-        self.start()
-        # Check if simulation termination request was made
-        if self._terminate_request:
-            self._execute_callback(self.before_end())
-            raise StopIteration
-        # Execute Callback Hooks Before Simulation Step
-        self._execute_callback(self.before_step())
-        # Simulation Step Amount
-        if self._advance_seconds is None:
-            time = self._model.swmm_step()
-        else:
-            time = self._model.swmm_stride(self._advance_seconds)
-        # Execute Callback Hooks After Simulation Step
-        self._execute_callback(self.after_step())
-        self._execute_coupling_logic()
-        if time <= 0.0:
-            self._execute_callback(self.before_end())
-            raise StopIteration
-        return self._model
+    def _execute_callback(self, callback):
+        """Runs the callback."""
+        if callback:
+            try:
+                callback(self)
+            except PYSWMMException:
+                error_msg = "Callback Failed"
+                raise PYSWMMException((error_msg))
 
     def _execute_coupling_logic(self):
         ...
