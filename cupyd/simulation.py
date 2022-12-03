@@ -50,7 +50,14 @@ class CoupledSimulation(Simulation):
         return self._coupled_model.modflow_model
 
     def _execute_callback(self, callback):
-        """Runs the callback."""
+        """Runs the callback.
+
+        This function overrides the pySWMM `Simulation` `_execute_callback` method
+        in order to pass the simulation object to the callbacks. We do this so that
+        we can execute the coupling logic as a "callback"; also because we believe
+        it is useful to have it on the callbacks.
+        
+        """
         if callback:
             try:
                 callback(self)
@@ -60,6 +67,12 @@ class CoupledSimulation(Simulation):
 
     def after_step(self):
         """Get After Step Callback.
+
+        Here we override the pySWMM `Simulation` `after_step` function in order
+        to call directly the coupling logic first. Any after step callback
+        set is going to be called by the `_execute_coupling_logic` method.
+
+        Check `_execute_coupling_logic` doc strings for a better understanding.
 
         :return: Callbacks
         """
