@@ -124,5 +124,14 @@ class CoupledSimulation(SmartSimulation):
                 error_msg = "Callback Failed"
                 raise PYSWMMException((error_msg))
 
+    def after_step(self):
+        """Get After Step Callback.
+
+        :return: Callbacks
+        """
+        return self._execute_coupling_logic(self)
+
     def _execute_coupling_logic(self):
-        ...
+
+        if self._callbacks["after_step"]:
+            self._callbacks["after_step"]()
