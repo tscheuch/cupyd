@@ -41,9 +41,9 @@ if swmm_comparison.diff_files:
             "Make sure you run the simulation before testing the results. The `Llanquihue_base.rpt` file is identical and at least the analysis should have changed."
         )
         quit()
-    with open(f"{SWMM_WORKSPACE}/Llanquihue_base.rpt") as rpt_file:
+    with open(SWMM_WORKSPACE / "Llanquihue_base.rpt") as rpt_file:
         rpt_file_text = rpt_file.readlines()
-    with open(f"{SWMM_RESULTS_WORKSPACE}/Llanquihue_base.rpt") as result_rpt_file:
+    with open(SWMM_RESULTS_WORKSPACE / "Llanquihue_base.rpt") as result_rpt_file:
         result_rpt_file_text = result_rpt_file.readlines()
     # Skipping final analysis part on both files.
     if rpt_file_text[:-3] != result_rpt_file_text[:-3]:
