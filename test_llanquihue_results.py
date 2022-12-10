@@ -6,10 +6,6 @@ class DifferentFilesException(Exception):
     """Custom exception class to raise when different files are encountered"""
 
 
-class DifferentDirectoriesException(Exception):
-    """Custom exception class to raise when different directories are encountered"""
-
-
 ROOT_DIRECTORY = Path(__file__).resolve().parent
 LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
 MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
@@ -24,11 +20,11 @@ modflow_comparison = filecmp.dircmp(MODFLOW_WORKSPACE, MODFLOW_RESULTS_WORKSPACE
 if modflow_comparison.diff_files:
     raise DifferentFilesException(modflow_comparison.diff_files)
 if modflow_comparison.left_only:
-    raise DifferentDirectoriesException(
+    raise DifferentFilesException(
         f"MODFLOW file missing on results: `{modflow_comparison.left_only}`"
     )
 if modflow_comparison.right_only:
-    raise DifferentDirectoriesException(
+    raise DifferentFilesException(
         f"MODFLOW file missing on target: `{modflow_comparison.right_only}`"
     )
 
@@ -55,10 +51,10 @@ if swmm_comparison.diff_files:
     if diff_files:
         raise DifferentFilesException(diff_files)
 if swmm_comparison.left_only:
-    raise DifferentDirectoriesException(
+    raise DifferentFilesException(
         f"SWMM file missing on results: `{swmm_comparison.left_only}`"
     )
 if swmm_comparison.right_only:
-    raise DifferentDirectoriesException(
+    raise DifferentFilesException(
         f"SWMM file missing on target: `{swmm_comparison.right_only}`"
     )
