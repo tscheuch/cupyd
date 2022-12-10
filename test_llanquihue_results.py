@@ -51,10 +51,6 @@ if swmm_comparison.diff_files:
     if diff_files:
         raise DifferentFilesException(diff_files)
 if swmm_comparison.left_only:
-    raise DifferentFilesException(
-        f"SWMM file missing on results: `{swmm_comparison.left_only}`"
-    )
+    raise DifferentFilesException(f"SWMM file missing on results: `{swmm_comparison.left_only}`")
 if swmm_comparison.right_only:
-    raise DifferentFilesException(
-        f"SWMM file missing on target: `{swmm_comparison.right_only}`"
-    )
+    raise DifferentFilesException(f"SWMM file missing on target: `{swmm_comparison.right_only}`")
