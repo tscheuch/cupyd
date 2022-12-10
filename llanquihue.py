@@ -141,10 +141,10 @@ with CoupledSimulation(
             ) + dataframe_with_recharges.infiltration_storage_unit_recharge.fillna(
                 0
             )
-            # if hours % 720 == 0:
-            #     dataframe_with_recharges.plot(column="iteration_recharge")
-            #     print("PLOTTING RECHARGE")
-            #     plt.show()
+            if hours % 720 == 0:
+                dataframe_with_recharges.plot(column="iteration_recharge")
+                print("PLOTTING RECHARGE")
+                plt.show()
 
             # Create MODFLOW inputs: RCH package (it doesn't take into account initial recharge)
             top_layer_recharge_matrix = (
@@ -225,13 +225,13 @@ with CoupledSimulation(
             node_inflow = dataframe_with_recharges.groupby("node").sum(numeric_only=True)[
                 "DRN_rate"
             ]
-            # if hours % 720 == 0:
-            #     t2 = time.time()
-            #     print(t2 - t1)
-            #     t1 = time.time()
-            #     print("PLOTTING DRN RATE")
-            #     dataframe_with_recharges.plot(column="DRN_rate")
-            #     plt.show()
+            if hours % 720 == 0:
+                t2 = time.time()
+                print(t2 - t1)
+                t1 = time.time()
+                print("PLOTTING DRN RATE")
+                dataframe_with_recharges.plot(column="DRN_rate")
+                plt.show()
 
             for node in Nodes(sim):
                 inflow = (

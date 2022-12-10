@@ -36,9 +36,3 @@ isort!:
 .PHONY: mypy
 mypy:
 	poetry run mypy cupyd/georef.py
-
-# Testing
-# =======
-.PHONY: test-results
-test-results:
-	python test_llanquihue_results.py
