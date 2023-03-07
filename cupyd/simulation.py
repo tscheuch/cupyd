@@ -1,24 +1,27 @@
+import os
+import platform
+from pathlib import Path
+
+import flopy
+import numpy
+import pandas
 from flopy.modflow import Modflow
-from pyswmm import Simulation
+from pyswmm import Nodes, Simulation, Subcatchments
+from pyswmm.swmm5 import PYSWMMException
 
 from cupyd.georef import CoupledModel
 
-from .results import (
-    JunctionsTimeSeriesResult,
-    LinksTimeSeriesResult,
-    StorageUnitsTimeSeriesResult,
-    SubcatchmentsTimeSeriesResult,
-)
-
 SWMM_path = ""
 
+ROOT_DIRECTORY = Path(__file__).resolve().parent.parent
+LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
+MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
+SWMM_WORKSPACE = LLANQUIHUE / "SWMM"
 
-class SimulationResults:
-    def __init__(self, simulation) -> None:
-        self.subcatchments_time_series_result = SubcatchmentsTimeSeriesResult(simulation)
-        self.storage_units_time_series_result = StorageUnitsTimeSeriesResult(simulation)
-        self.junctions_time_series_result = JunctionsTimeSeriesResult(simulation)
-        self.conduits_time_series_result = LinksTimeSeriesResult(simulation)
+# MODFLOW
+MODFLOW_MODEL_NAME = "LLANQUIHUE.nam"
+MODFLOW_VERSION = "mfnwt"
+MODFLOW_EXECUTABLE = "mfnwt.exe" if platform.system() == "Windows" else "mfnwt"
 
 
 def get_modflow_step_data():
@@ -48,62 +51,26 @@ def make_something_with_the_data():
     ...
 
 
-class SmartSimulation(Simulation):
-    """An extension of PySWMM simulation to allow passing callbacks to be executed in a fixed period
-    of time.
-
-    Args:
-        Simulation (_type_): PySWMM simulation class
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._callbacks["add_on_x_seconds_before_step"] = None
-        self._callbacks["on_x_seconds_after_step"] = None
-
-    def on_x_seconds_before_step(self):
-        """Get On Seconds X Before Step Callback.
-
-        :return: Callbacks
-        """
-        return self._callbacks["on_x_seconds_before_step"]
-
-    def add_on_x_seconds_before_step(self, callback, seconds: int):
-        """
-        Add callback function/method/object to execute before
-        a simulation step, IF AND ONLY IF, that step simulation time is a multiple
-        of the parameter X. Needs to be callable.
-
-        :param func callback: Callable Object
-        """
-        if self._is_callback(callback):
-            self._callbacks["on_x_seconds_before_step"] = callback
-
-    def on_x_seconds_after_step(self):
-        """Get On Seconds X After Step Callback.
-
-        :return: Callbacks
-        """
-        return self._callbacks["on_x_seconds_after_step"]
-
-    def add_on_x_seconds_after_step(self, callback, seconds: int):
-        """
-        Add callback function/method/object to execute before
-        a simulation step, IF AND ONLY IF, that step simulation time is a multiple
-        of the parameter X. Needs to be callable.
-
-        :param func callback: Callable Object
-        """
-        if self._is_callback(callback):
-            self._callbacks["on_x_seconds_after_step"] = callback
-
-
-class CoupledSimulation(SmartSimulation):
+class CoupledSimulation(Simulation):
     def __init__(self, coupled_model: CoupledModel, coupled_data=None, **kwargs):
         super().__init__(**kwargs)
         self._coupled_model = coupled_model
         self._coupled_data = coupled_data
-        self.results = SimulationResults(self)
+        self.subcatchments_cumulative_infiltration = {}
+        self.storage_units_cumulative_infiltration = {}
+        self._coupled_model.geo_dataframe["area"] = self._coupled_model.geo_dataframe.apply(
+            lambda row: row.geometry.area, axis=1
+        )
+        self.subcatchment_area_dataframe = self._coupled_model.geo_dataframe.groupby(
+            "subcatchment"
+        ).sum(numeric_only=True)["area"]
+        self.storage_unit_area_dataframe = self._coupled_model.geo_dataframe.groupby(
+            "infiltration_storage_unit"
+        ).sum(numeric_only=True)["area"]
+        self.nrows = self.modflow_model.dis.nrow
+        self.ncols = self.modflow_model.dis.ncol
+        # TODO: Delete this. Element to facilitate plotting
+        self.dataframe_with_recharges = None
 
     @property
     def modflow_model(self) -> Modflow:
@@ -114,28 +81,232 @@ class CoupledSimulation(SmartSimulation):
         """
         return self._coupled_model.modflow_model
 
-    def __next__(self):
-        """Next"""
-        # Start Simulation
-        self.start()
-        # Check if simulation termination request was made
-        if self._terminate_request:
-            self._execute_callback(self.before_end())
-            raise StopIteration
-        # Execute Callback Hooks Before Simulation Step
-        self._execute_callback(self.before_step())
-        # Simulation Step Amount
-        if self._advance_seconds is None:
-            time = self._model.swmm_step()
-        else:
-            time = self._model.swmm_stride(self._advance_seconds)
-        # Execute Callback Hooks After Simulation Step
-        self._execute_callback(self.after_step())
+    @property
+    def _cupled_subcatchments(self):
+        return [subcatchment for subcatchment in Subcatchments(self)]
+
+    @property
+    def _cupled_storage_units(self):
+        return [node for node in Nodes(self) if node.is_storage()]
+
+    def _execute_callback(self, callback):
+        """Runs the callback.
+
+        This function overrides the pySWMM `Simulation` `_execute_callback` method
+        in order to pass the simulation object to the callbacks. We do this so that
+        we can execute the coupling logic as a "callback"; also because we believe
+        it is useful to have it on the callbacks.
+
+        """
+        if callback:
+            try:
+                callback(self)
+            except PYSWMMException:
+                error_msg = "Callback Failed"
+                raise PYSWMMException((error_msg))
+
+    def before_step(self):
+        """Get Before Step Callback.
+
+        :return: Callbacks
+        """
+        self.set_subcatchments_cumulative_infiltration()
+        self.set_storage_unites_cumulative_exfil_loss()
+        # TODO: This step advance implementation con be changed by the library user and that would affect the result.
+        # Also, the step advance might not always be the same!
+        self.step_advance(3600 * 24)  # 1 day
+        return self._callbacks["before_step"]
+
+    def after_step(self):
+        """Get After Step Callback.
+
+        Here we override the pySWMM `Simulation` `after_step` function in order
+        to call directly the coupling logic first. Any after step callback
+        set is going to be called by the `_execute_coupling_logic` method.
+
+        Check `_execute_coupling_logic` doc strings for a better understanding.
+
+        :return: Callbacks
+        """
         self._execute_coupling_logic()
-        if time <= 0.0:
-            self._execute_callback(self.before_end())
-            raise StopIteration
-        return self._model
+        return self._callbacks["after_step"]
+
+    def set_subcatchments_cumulative_infiltration(self):
+        for subcatchment in self._cupled_subcatchments:
+            self.subcatchments_cumulative_infiltration[
+                subcatchment.subcatchmentid
+            ] = subcatchment.statistics["infiltration"]
+
+    def set_storage_unites_cumulative_exfil_loss(self):
+        for storage_unit in self._cupled_storage_units:
+            self.storage_units_cumulative_infiltration[
+                storage_unit.nodeid
+            ] = storage_unit.storage_statistics["exfil_loss"]
+
+    def execute(self):
+        """
+        Open an input file, run SWMM, then close the file.
+
+        Examples:
+
+        >>> sim = PYSWMM(r'\\test.inp')
+        >>> sim.execute()
+        """
+        for _ in self:
+            pass
+        self.report()
+        self.close()
+        # self._model.swmmExec()
 
     def _execute_coupling_logic(self):
-        ...
+        modflow_recharge_from_subcatchments = {}
+        modflow_recharge_from_storage_units = {}
+        for subcatchment in Subcatchments(self):
+            # Delta infiltration
+            modflow_recharge_from_subcatchments[subcatchment.subcatchmentid] = (
+                subcatchment.statistics["infiltration"]
+                - self.subcatchments_cumulative_infiltration[subcatchment.subcatchmentid]
+            )
+
+        for su in self._cupled_storage_units:
+            # Delta infiltration
+            # Do this to get the actual node as a `Storage`
+            storage_unit = Nodes(self)[su.nodeid]
+
+            modflow_recharge_from_storage_units[storage_unit.nodeid] = (
+                storage_unit.storage_statistics["exfil_loss"]
+                - self.storage_units_cumulative_infiltration[storage_unit.nodeid]
+            )
+
+        modflow_recharge_from_subcatchments_series = pandas.Series(
+            modflow_recharge_from_subcatchments
+        )
+        modflow_recharge_from_storage_units_series = pandas.Series(
+            modflow_recharge_from_storage_units
+        )
+
+        modflow_recharge_from_subcatchments_series = (
+            modflow_recharge_from_subcatchments_series / self.subcatchment_area_dataframe
+        )
+        modflow_recharge_from_subcatchments_series.name = "subcatchment_recharge"
+        modflow_recharge_from_subcatchments_series.index.name = "subcatchment"
+
+        modflow_recharge_from_storage_units_series = (
+            modflow_recharge_from_storage_units_series / self.storage_unit_area_dataframe
+        )
+        modflow_recharge_from_storage_units_series.name = "infiltration_storage_unit_recharge"
+        modflow_recharge_from_storage_units_series.index.name = "infiltration_storage_unit"
+
+        self.dataframe_with_recharges = pandas.merge(
+            self._coupled_model.geo_dataframe,
+            modflow_recharge_from_subcatchments_series,
+            on="subcatchment",
+            how="left",
+        )
+        self.dataframe_with_recharges = pandas.merge(
+            self.dataframe_with_recharges,
+            modflow_recharge_from_storage_units_series,
+            on="infiltration_storage_unit",
+            how="left",
+        )
+
+        # Aggregate cell recharges
+        self.dataframe_with_recharges[
+            "iteration_recharge"
+        ] = self.dataframe_with_recharges.subcatchment_recharge.fillna(
+            0
+        ) + self.dataframe_with_recharges.infiltration_storage_unit_recharge.fillna(
+            0
+        )
+
+        # Create MODFLOW inputs: RCH package (it doesn't take into account initial recharge)
+        top_layer_recharge_matrix = (
+            self.dataframe_with_recharges["iteration_recharge"]
+            .fillna(0)
+            .to_numpy()
+            .reshape(self.nrows, self.ncols)
+        )
+
+        # TODO: MAKE IPAKCB GENERIC
+        recharge_package = flopy.modflow.ModflowRch(
+            self.modflow_model, nrchop=3, rech=top_layer_recharge_matrix, ipakcb=53
+        )
+
+        # Run MODFLOW
+        # TODO: Improve performance by writing only necessary packages
+        self.modflow_model.write_input()
+        self.modflow_model.run_model(silent=True)
+
+        # Read MODFLOW outputs
+        # headfile, _, _ = self.modflow_model.load_results()
+        fname = os.path.join(MODFLOW_WORKSPACE, "LLANQUIHUE.hds")
+        headfile = flopy.utils.HeadFile(fname, model=self.modflow_model)
+        heads = headfile.get_data()
+        heads[heads == 1.0e30] = numpy.nan  # fix masked data
+        heads[heads == -999.99] = numpy.nan
+
+        # Strt next loop
+        strt = heads[0]
+
+        ibound = (
+            self.dataframe_with_recharges["ibound"]
+            .fillna(0)
+            .to_numpy()
+            .reshape(1, self.nrows, self.ncols)
+        )
+
+        bas = flopy.modflow.ModflowBas(
+            self.modflow_model, ibound=ibound, strt=strt
+        )  # use the head table of the last time step and bc
+
+        # TODO: PREGUNTAR TERUCA
+        # Profundidad a la que drena una columna de Modflow (sólo nos importa la top layer)
+        DRN_burn_depth = 0.0
+        # Global parameters needed to calculate drain conductance (see reference MODELMUSE DRN package pane)
+        W = 5000  # model size (X)
+        H = 5000  # model size (Y)
+        x_resolution = W / self.ncols
+        y_resolution = H / self.nrows
+        DRN_L = x_resolution
+        DRN_W = y_resolution
+        DRN_M = 1
+        DRN_K = 0.05  # m/day
+
+        top = self.modflow_model.dis.top.array
+        DTWT = (top - DRN_burn_depth) - heads[0]
+
+        # DRN calculation
+        delta_H = numpy.reshape(DTWT, len(self.dataframe_with_recharges))
+        altura = numpy.reshape(heads[0], len(self.dataframe_with_recharges))
+        for i in range(len(delta_H)):
+            if delta_H[i] < 0:
+                delta_H[i] = -delta_H[i]
+            else:
+                delta_H[i] = 0.0
+        self.dataframe_with_recharges["Altura"] = altura
+        self.dataframe_with_recharges["delta_H"] = delta_H
+        self.dataframe_with_recharges["DRN_rate"] = 0.0
+
+        # TODO: ASK TERE WHAT `DRN` IS
+        self.dataframe_with_recharges["drn_cond"].fillna(0, inplace=True)
+        mask = self.dataframe_with_recharges["ibound"] != -1
+        self.dataframe_with_recharges.loc[mask, "DRN_rate"] = (
+            self.dataframe_with_recharges["delta_H"] * self.dataframe_with_recharges["drn_cond"]
+        )
+
+        # INFLOW RATES IN SU AND JUNCTIONS
+
+        # Inflow rates in SU:
+        # node_inflow=self.dataframe_with_recharges.groupby("drn_to").sum()["DRN_rate"]
+        node_inflow = self.dataframe_with_recharges.groupby("node").sum(numeric_only=True)[
+            "DRN_rate"
+        ]
+
+        for node in Nodes(self):
+            inflow = (
+                node_inflow[node.nodeid] / 86400.0 if node.nodeid in node_inflow.index else 0
+            )  # m3/s
+            node.generated_inflow(inflow)
+
+        if self._callbacks["after_step"]:
+            self._callbacks["after_step"]()
