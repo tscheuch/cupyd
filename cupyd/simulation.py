@@ -11,17 +11,8 @@ from pyswmm.swmm5 import PYSWMMException
 
 from cupyd.georef import CoupledModel
 
-SWMM_path = ""
 
-ROOT_DIRECTORY = Path(__file__).resolve().parent.parent
-LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
-MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
-SWMM_WORKSPACE = LLANQUIHUE / "SWMM"
 
-# MODFLOW
-MODFLOW_MODEL_NAME = "LLANQUIHUE.nam"
-MODFLOW_VERSION = "mfnwt"
-MODFLOW_EXECUTABLE = "mfnwt.exe" if platform.system() == "Windows" else "mfnwt"
 
 
 def get_modflow_step_data():
