@@ -1,6 +1,4 @@
 import os
-import platform
-from pathlib import Path
 
 import flopy
 import numpy
@@ -10,18 +8,6 @@ from pyswmm import Nodes, Simulation, Subcatchments
 from pyswmm.swmm5 import PYSWMMException
 
 from cupyd.georef import CoupledModel
-
-SWMM_path = ""
-
-ROOT_DIRECTORY = Path(__file__).resolve().parent.parent
-LLANQUIHUE = ROOT_DIRECTORY / "llanquihue"
-MODFLOW_WORKSPACE = LLANQUIHUE / "MODFLOW"
-SWMM_WORKSPACE = LLANQUIHUE / "SWMM"
-
-# MODFLOW
-MODFLOW_MODEL_NAME = "LLANQUIHUE.nam"
-MODFLOW_VERSION = "mfnwt"
-MODFLOW_EXECUTABLE = "mfnwt.exe" if platform.system() == "Windows" else "mfnwt"
 
 
 def get_modflow_step_data():
@@ -239,7 +225,7 @@ class CoupledSimulation(Simulation):
 
         # Read MODFLOW outputs
         # headfile, _, _ = self.modflow_model.load_results()
-        fname = os.path.join(MODFLOW_WORKSPACE, "LLANQUIHUE.hds")
+        fname = os.path.join(self._coupled_model.modflow_model._model_ws, "LLANQUIHUE.hds")
         headfile = flopy.utils.HeadFile(fname, model=self.modflow_model)
         heads = headfile.get_data()
         heads[heads == 1.0e30] = numpy.nan  # fix masked data
