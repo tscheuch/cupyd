@@ -239,7 +239,7 @@ class CoupledSimulation(Simulation):
 
         # Read MODFLOW outputs
         # headfile, _, _ = self.modflow_model.load_results()
-        fname = os.path.join(MODFLOW_WORKSPACE, "LLANQUIHUE.hds")
+        fname = os.path.join(self._coupled_model.modflow_model._model_ws, "LLANQUIHUE.hds")
         headfile = flopy.utils.HeadFile(fname, model=self.modflow_model)
         heads = headfile.get_data()
         heads[heads == 1.0e30] = numpy.nan  # fix masked data
