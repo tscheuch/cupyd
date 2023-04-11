@@ -10,9 +10,6 @@ from pyswmm.swmm5 import PYSWMMException
 from cupyd.georef import CoupledModel
 
 
-
-
-
 def get_modflow_step_data():
     """From every MODFLOW step we need to retrieve:
     - Calculate each cell drained water, and give it back to its related Junction as lateral inflow.
