@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" height="100" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/320/apple/325/heart-with-arrow_1f498.png" alt="Cupyd">
+  <img width="100" height="100" src="https://em-content.zobj.net/thumbs/240/apple/354/heart-with-arrow_1f498.png" alt="Cupyd">
 </p>
 
 <p align="center"><strong>Cupyd --</strong> a romantic integration scheme between SWMM & MODFLOW</p>
@@ -8,26 +8,52 @@
 
 ## Integration overview
 
-The integration scheme done by **Cupyd** consists of three sequential steps:
+The integration scheme done by **Cupyd** consists of two sequential steps:
 1. A spatial integration between the [SWMM] and [MODFLOW] elements
 2. A coupled model simulation with a spatio-temporal data exchange
-3. Finally, a post-processing stage with results analysis
+
 
 ### 1. Spatial integration between the SWMM and MODFLOW elements
 
+Code file: georef.py
+
 **Input elements**
 - SWMM model (swmm_model.inp) **or** a simulation object from [PySWMM]
-- [Shapefiles](https://en.wikipedia.org/wiki/Shapefile) of
-  SWMM subcatchments **and/or** storage units (S_polygon.shp **and/or** SU_polygon.shp)
-  **and** junctions (J_points.shp)
-- MODFLOW model **or** MODFLOW grid + DEM
+- [Shapefiles]  mandatory files (SHP, SHX and DBF) (https://en.wikipedia.org/wiki/Shapefile) of:
+  SWMM subcatchments **and/or** SWMM storage units
+  **and**, if a bidirecational exchange is needed, SWMM nodes. Note that a distinction has been made between nodes and storage units, as the latter are the only ones with drainage capacity. In the nodes shapefiles storage units can be incorporated.
+
+All shapefiles must be of polygon type. In the case of subcatchments and storage units, they represent the surface area they occupy in space. For junctions, they represent the area of the aquifer that will eventually drain water to that point.
+
+To prevent continuity errors in the flow transfer, it's important to avoid overlapping polygons and empty spaces. Additionally, if you want bidirectional exchange, make sure that all MODFLOW cells with drain capacity intersect with a polygon from the junction shapefile.
+
+One atribute for each geometry on the shapefile must be the name of the element in SWMM .inp file.
+By convention the name of the column should be "subcatch", "stor_unit" and "node".
+
+
+- MODFLOW model **or** MODFLOW grid shapefile + Digital Elevation Model (DEM)
   (only needed for spatial integration)
-- **Optional:** List of groundwater zones and junctions’ association
+
 
 **Output elements**
+
 - [GeoDataFrame](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html)
-  with MODFLOW cells’ associations (**elev**, **S**, **SU**, **DRN**, **drn_to**)
-- A few [Matplotlib](https://matplotlib.org)-powered plots
+  with MODFLOW cells’ associations (**x**,**y**,**geometry**, **elev**, **drn_elev**, **drn_cond** , **subcatch**, **stor_unit**, **drn_to_node**, **drn_rate**), where:
+
+  **x**: Number of the x-axis were each cell lives in, on the `Modflow` instance grid.
+  **y**: Number of the y-axis were each cell lives in, on the `Modflow` instance grid.
+  **geometry**: 'Polygon' representation of the cell.
+  **elev**: Cell elevation of the first layer of the grid, the one that gets georeferenced with the SWMM model.
+  **drn_elev**: The elevation of the drain.
+  **drn_cond**: The hydraulic conductance of the interface between the aquifer and the drain.
+
+  **subcatch**: Name of the SWMM subcatchment that infiltrates to the cell.
+  **stor_unit**: Name of the SWMM storage unit that infiltrates to the cell.
+  **drn_to_node**: Name of the node where the cell eventually exfiltrates. It can be a `junction`, a `storage unit`, `divider` or an `outfall`.
+
+  Note that a subcatchment and a storage unit have the ability to recharge multiple cells. Moreover, a single cell can receive infiltration from both a subcatchment and a storage unit simultaneously. However, in the opposite direction, a cell can only drain to one specific node.
+
+- A few [Matplotlib](https://matplotlib.org)-powered plots where you can visually verify if the spatial integration was correctly constructed.
 
 ### 2. Coupled model simulation with a spatio-temporal data exchange
 
@@ -41,12 +67,6 @@ The integration scheme done by **Cupyd** consists of three sequential steps:
 - Simulation results from PySWMM
 - [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy
 
-### 3. Post-processing stage with results analysis
-
-- Continuity analysis
-- Results from SWMM
-- Results from MODFLOW
-- Integration results
 
 ## Library usage (work in progress)
 
