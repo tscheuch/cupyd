@@ -129,7 +129,7 @@ class CoupledModel:
             - subcatchment (str): Name of SWMM subcatchment that infiltrates to the cell.
             - infiltration_storage_unit (str, None): Name of the SWMM storage unit that infiltrates to the cell.
             Exfiltration exchange:
-            - node (str, None): Name of the node where the subcatchment exfiltrates. It can be a `junction`, a
+            - node (str, None): Name of the node where the cell eventually exfiltrates. It can be a `junction`, a
                 `storage unit`, `divider` or an `outfall`. These elements have unique names in between them, so it
                 is safe to call them just `node`.
 
