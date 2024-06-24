@@ -40,16 +40,16 @@ By convention the name of the column should be "subcatch", "stor_unit" and "node
 - [GeoDataFrame](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html)
   with MODFLOW cells’ associations (**x**,**y**,**geometry**, **elev**, **drn_elev**, **drn_cond** , **subcatch**, **stor_unit**, **drn_to_node**, **drn_rate**), where:
 
-  **x**: Number of the x-axis were each cell lives in, on the `Modflow` instance grid.
-  **y**: Number of the y-axis were each cell lives in, on the `Modflow` instance grid.
-  **geometry**: 'Polygon' representation of the cell.
-  **elev**: Cell elevation of the first layer of the grid, the one that gets georeferenced with the SWMM model.
-  **drn_elev**: The elevation of the drain.
-  **drn_cond**: The hydraulic conductance of the interface between the aquifer and the drain.
+  **x**: Number of the x-axis were each cell lives in, on the `Modflow` instance grid.  
+  **y**: Number of the y-axis were each cell lives in, on the `Modflow` instance grid.  
+  **geometry**: 'Polygon' representation of the cell.  
+  **elev**: Cell elevation of the first layer of the grid, the one that gets georeferenced with the SWMM model.  
+  **drn_elev**: The elevation of the drain.  
+  **drn_cond**: The hydraulic conductance of the interface between the aquifer and the drain.  
 
-  **subcatch**: Name of the SWMM subcatchment that infiltrates to the cell.
-  **stor_unit**: Name of the SWMM storage unit that infiltrates to the cell.
-  **drn_to_node**: Name of the node where the cell eventually exfiltrates. It can be a `junction`, a `storage unit`, `divider` or an `outfall`.
+  **subcatch**: Name of the SWMM subcatchment that infiltrates to the cell.  
+  **stor_unit**: Name of the SWMM storage unit that infiltrates to the cell.  
+  **drn_to_node**: Name of the node where the cell eventually exfiltrates. It can be a `junction`, a `storage unit`, `divider` or an `outfall`.  
 
   Note that a subcatchment and a storage unit have the ability to recharge multiple cells. Moreover, a single cell can receive infiltration from both a subcatchment and a storage unit simultaneously. However, in the opposite direction, a cell can only drain to one specific node.
 
