@@ -58,14 +58,14 @@ By convention the name of the column should be "subcatch", "stor_unit" and "node
 ### 2. Coupled model simulation with a spatio-temporal data exchange
 
 **Input elements**
-- Simulation object from PySWMM
+- Simulation from PySWMM
 - [FloPy] model
-- Time steps for reporting
+- Spatial integration Geodataframe  
 
 **Output elements**
-- Results from time series
+- Geodataframe with exchanged flux can be saved/ploted in every time step
 - Simulation results from PySWMM
-- [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy
+- [Zone budget](https://flopy.readthedocs.io/en/latest/source/flopy.utils.zonbud.html) results from FloPy (developing)
 
 
 ## Library usage (work in progress)
